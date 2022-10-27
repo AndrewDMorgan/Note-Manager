@@ -1,0 +1,53 @@
+{
+    "NoteBoards": {
+        "Daily To-Do": {
+            "Notes": {
+                "Chores": {"SubNotes":[]},
+                "Check in": {
+                    "SubNotes": [
+                        "Friday",
+                        "Monday"
+                    ]
+                }
+            }
+        },
+        "To-Do Board": {
+            "Notes": {
+                "Add note boards": {
+                    "SubNotes": [
+                        "A lists of boards",
+                        "Can be moved, created, deleted, copied, ect..."
+                    ]
+                },
+                "Add notes": {
+                    "SubNotes": [
+                        "Notes can be added to note boards"
+                    ]
+                },
+                "Add Catagories Collumns": {
+                    "SubNotes": [
+                        "There can be catagories left to right",
+                        "Notes can be moved inbetween",
+                        "Catagories can be named and moved and manipulated"
+                    ]
+                },
+                "Add saving": {
+                    "SubNotes": [
+                        "Note boards and notes are saved on exit and randomly"
+                    ]
+                },
+                "Add sub-notes": {
+                    "SubNotes": [
+                        "notes can be created under notes adding more info"
+                    ]
+                },
+                "Add calander events with dates/times": {
+                    "SubNotes": [
+                        "notes/events can be given dates and times",
+                        "events can be setup to repeat"
+                    ]
+                }
+            }
+        }
+    }
+}
