@@ -15,7 +15,7 @@ class Renderer:
         self.ny = self.y
 
     # rendering the box
-    def Render(self, id: int, screen: object) -> None:
+    def Render(self, boardId: int, screen: object, fadedText: typing.Tuple[int] = (200, 200, 200)) -> None:
         # the difference between the new and old x/y
         dx = self.nx - self.x
         dy = self.ny - self.y
@@ -30,9 +30,16 @@ class Renderer:
         self.x = CoreFuncs.Lerp(self.nx, self.x, 0.5)
         self.y = CoreFuncs.Lerp(self.ny, self.y, 0.5)
 
+        # the color of the text
+        textColor = (255, 255, 255)
+
+        # checking if this is the active board
+        if currentBoard != boardId:
+            textColor = fadedText
+
         # rendering the box and the text
         pygame.draw.rect(screen, (125, 125, 125), [self.nx + 5, self.ny + self.sy - 3, self.sx - 10, 3])
-        CoreFuncs.UI.text(screen, self.text, (255, 255, 255), (self.x+5, self.y+5), 20)
+        CoreFuncs.UI.text(screen, self.text, textColor, (self.x+5, self.y+5), 20)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
@@ -59,8 +66,8 @@ class Renderer:
 class RendererNote (Renderer):
     # the renderer
     def Render(self, id: int, screen: object) -> None:
-        super().Render(id, screen)  # rendering the other stuff
-
+        super().Render(id, screen, fadedText=(255, 255, 255))  # rendering the other stuff
+        
         # the drop down menu for the sub tasks
         CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.nx + self.sx - 20, self.ny + self.sy - 20), 15)
 
