@@ -91,7 +91,7 @@ class ButtonManager:
 
 # a text box with extra properties
 class TextBoxContainer:
-    def __init__(self, renderer: object, updateFunc: FunctionType = lambda x: None) -> None:
+    def __init__(self, renderer: object, updateFunc: FunctionType = lambda *args: None) -> None:
         self.__renderer = renderer
         self.Update = updateFunc  # setting the update function
     
@@ -137,6 +137,10 @@ class TextBoxContainer:
         self.__renderer.SetX(x)
     def SetY(self, y: int) -> None:
         self.__renderer.SetY(y)
+    
+    # gets the renderer
+    def GetRenderer(self) -> object:
+        return self.__renderer
 
 
 # manages a set of text boxes
@@ -182,6 +186,10 @@ class TextBoxManager:
         return self.__indexes
     def SetIndexes(self, indexes: int) -> None:
         self.__indexes = indexes
+    
+    # gets the boxes actual index
+    def GetIndex(self, i: int) -> int:
+        return self.__indexes.index(i)
 
 
 # manages a list of text boxes that are arranged in a collumn and are moveable
@@ -194,6 +202,25 @@ class TextBoxCollumnManager (TextBoxManager):
         # locking the movement in different directions
         self.lockX = lockX
         self.lockY = lockY
+    
+    # shifts all boxes bellow the given box down
+    def ShiftBoxesY(self, boxIndex: int, dy: int) -> None:
+        # getting the boxes
+        boxes = self.GetBoxes()
+
+        # getting the height of the box
+        box = boxes[boxIndex]
+        height = box.GetY()
+
+        # looping through and moving all boxes bellow the current box down
+        for box in boxes:
+            # checking if the box is bellow the one inputed
+            if box.GetY() > height:
+                box.AddY(dy)  # moving the box
+
+        # updating the boxes
+        self.SetBoxes(boxes)
+
     # updating the text boxes
     def Update(self, mx: int, my: int, lmx: int, lmy: int, mouseHeld: bool, *args) -> None:
         # updating the boxes from the base class

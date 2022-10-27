@@ -55,6 +55,43 @@ class Renderer:
         return self.sy
 
 
+# for rendering notes, just adds rendering stuff
+class RendererNote (Renderer):
+    # the renderer
+    def Render(self, id: int, screen: object) -> None:
+        super().Render(id, screen)  # rendering the other stuff
+
+        # the drop down menu for the sub tasks
+        CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.nx + self.sx - 20, self.ny + self.sy - 20), 15)
+
+
+# update function for notes
+def NoteUpdateFunc(boardId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
+    # getting the box
+    box = self.GetBox(boardId)
+    
+    # checking if the box was clicked
+    if mouseDown and box.CheckCollision(mx, my):
+        # the objects position
+        obX = box.GetX()
+        obY = box.GetY()
+
+        # checking if the dropdown menu was clicked
+        colLeft = obX + box.GetSizeX() - 20
+        colTop  = obY + box.GetSizeY() - 20
+        collsionX = CoreFuncs.Range(mx, colLeft, colLeft + 15)
+        collsionY = CoreFuncs.Range(my, colTop, colTop + 15)
+        if collsionX and collsionY:
+            # getting the actual index
+            realIndex = self.GetIndex(boardId)
+
+            # checking the size fromt he sub notes, make it go out and change the icon to an up arrow and than when pressed make it go up, also render sub notes when down under the renderer
+            size = 40  # just for now
+            self.ShiftBoxesY(realIndex, size)
+
+            #CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.x + self.sx - 20, self.y + self.sy - 20), 15)
+
+
 # the update function for note boards, take any number of args but only up to my is used
 def NoteBoardUndateFunc(boardId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
     global currentBoard, currentBoardManager
@@ -79,7 +116,7 @@ def GetNoteBoards(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # looping through all the note boards
     i = 0
     for board in noteBoards:
-        box = Buttons.TextBoxContainer(Renderer(10, 10 + i * 40, 175, 40, board), NoteBoardUndateFunc)
+        box = Buttons.TextBoxContainer(Renderer(10, 10 + i * 40, 175, 40, board), updateFunc=NoteBoardUndateFunc)
 
         # adding the box
         boxes.append(box)
@@ -99,7 +136,7 @@ def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # looping through all the note boards
     i = 0
     for note in notes:
-        box = Buttons.TextBoxContainer(Renderer(195, 20 + i * 50, 500, 40, note))
+        box = Buttons.TextBoxContainer(RendererNote(195, 20 + i * 50, 500, 40, note), updateFunc=NoteUpdateFunc)
 
         # adding the box
         boxes.append(box)
