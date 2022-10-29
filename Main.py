@@ -29,6 +29,8 @@ Objectives:
 # setting up the screen
 screenWidth = 1200
 screenHeight = 750
+
+pygame.display.set_caption("Task Manager")
 screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 
 
@@ -44,6 +46,7 @@ lastMouseX, lastMouseY = 0, 0
 
 mouseDown = False
 mouseHeld = False
+
 
 # the state of the application
 running = True
@@ -77,9 +80,11 @@ while running:
     if not running:
         break
     
+
     # updating the TextBoxContainers
     noteBoards.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, noteBoards, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
     NoteBoard.currentBoardManager.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, NoteBoard.currentBoardManager, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
+
 
     # clearing the screen
     screen.fill((68, 68, 68))
