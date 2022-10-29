@@ -1,6 +1,9 @@
 import json, pygame
 
 
+# ---------------------------------------- Screen Stuff/UI ----------------------------------------
+
+
 # ui (just text for now)
 class UI:
     # rendering text with many options (transparecy, size, centering, color, font, ect...)
@@ -38,6 +41,10 @@ class UI:
         return sprite
 
 
+
+# ---------------------------------------- Data Loading/Parsing ----------------------------------------
+
+
 # for managing json files
 class Json:
     # reads/opens a json file
@@ -51,6 +58,10 @@ class Json:
         # Writing to the file
         with open(file, "w") as out:
             out.write(jsonObj)
+
+
+
+# ---------------------------------------- Math Functions ----------------------------------------
 
 
 # checks if a value is in a range of values

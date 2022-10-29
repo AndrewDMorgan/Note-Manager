@@ -1,18 +1,35 @@
-import Buttons, CoreFuncs, NoteBoard
-import pygame, json, typing
+import CoreFuncs, NoteBoard
+import pygame, typing
 
 pygame.init()
+
+
+"""
+try 2D collumns
+
+211 ish Buttons.py bug
+def ShiftBoxesY(self, boxIndex: int, dy: int) -> None:
+# bug, bug, make sure boxes to the right/left dont get moved only boxes in the came collumn
+
+Try horizontal collumns maybe
+
+Objectives:
+    * Add catagories within boards (multiple collumns, can be swapped around, notes can be moved between them)
+    * Finish the drop down system for sub-notes
+        - Render sub-notes
+        - Maybe clean up movement after drop down goes up, it jumps a couple of boxes wich might be fixed but maybe should be left, idk
+    * Move event parsing to a class in another file, also add more/better/cleaner interactions with the data
+    * Add creation of boards and notes and sub-notes
+    * Add saving/auto saving
+    * Add the other things I have on the github page
+
+"""
 
 
 # setting up the screen
 screenWidth = 1200
 screenHeight = 750
 screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
-
-
-# a test case for this
-# try 2d collumns
-# try horizontal collomns
 
 
 # opening the save data for the noteboard
@@ -42,7 +59,7 @@ while running:
 
     # setting mouseDown to False unless the mouse is clicked
     mouseDown = False
-    
+
     # checking events (move to class/separate script)
     for event in pygame.event.get():
         # checking if the window was quit
@@ -60,14 +77,17 @@ while running:
     if not running:
         break
     
-    # updating the note boards self: object, baordId: int, mouseDown: bool, mx: int, my: int, *args
+    # updating the TextBoxContainers
     noteBoards.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, noteBoards, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
-    NoteBoard.currentBoardManager.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld)
+    NoteBoard.currentBoardManager.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, NoteBoard.currentBoardManager, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
 
     # clearing the screen
     screen.fill((68, 68, 68))
+
+    # drawing the left collumn with the boards
     pygame.draw.rect(screen, (45, 45, 45), [0, 0, 195, screenHeight])
 
+    # rendering all the TextBoxContainers
     noteBoards.Render(screen)
     NoteBoard.currentBoardManager.Render(screen)
 
