@@ -141,6 +141,10 @@ class TextBoxContainer:
     # gets the renderer
     def GetRenderer(self) -> object:
         return self.__renderer
+    
+    # updates the renderers that the boxes are being moved
+    def Moved(self, this: object, boxId: int) -> None:
+        self.__renderer.Moved(this, boxId)
 
 
 # manages a set of text boxes
@@ -204,7 +208,7 @@ class TextBoxCollumnManager (TextBoxManager):
         self.lockY = lockY
     
     # shifts all boxes bellow the given box down
-    def ShiftBoxesY(self, boxIndex: int, dy: int) -> None:
+    def ShiftBoxesY(self, boxIndex: int, dy: int) -> None:  # bug, bug, make sure boxes to the right/left dont get moved only boxes in the came collumn
         # getting the boxes
         boxes = self.GetBoxes()
 
@@ -261,9 +265,13 @@ class TextBoxCollumnManager (TextBoxManager):
                 otherBoxI = len(boxes) - 1
             elif py < boxes[0].GetY():
                 otherBoxI = 0
-
+            
             # checking if the mouse is over a box
-            if otherBoxI != -1:
+            if otherBoxI != -1 and otherBoxI != self.__heldI:
+                # telling the boxes that they are being moved
+                boxes[self.__heldI].Moved(self, self.__heldI)
+                boxes[otherBoxI   ].Moved(self, otherBoxI)
+
                 # changing the position of the boxes
                 boxX = boxes[self.__heldI].GetX()
                 boxY = boxes[self.__heldI].GetY()

@@ -2,33 +2,36 @@ import Buttons, CoreFuncs
 import typing, pygame
 
 
+# ---------------------------------------- Renderers ----------------------------------------
+
+
 # a text box renderer
 class Renderer:
     def __init__(self, x, y, sx, sy, text) -> None:
-        self.x = x
-        self.y = y
-        self.sx = sx
-        self.sy = sy
-        self.text = text
+        self.__x = x
+        self.__y = y
+        self.__sx = sx
+        self.__sy = sy
+        self.__text = text
 
-        self.nx = self.x
-        self.ny = self.y
+        self.__nx = self.__x
+        self.__ny = self.__y
 
     # rendering the box
     def Render(self, boardId: int, screen: object, fadedText: typing.Tuple[int] = (200, 200, 200)) -> None:
         # the difference between the new and old x/y
-        dx = self.nx - self.x
-        dy = self.ny - self.y
+        dx = self.__nx - self.__x
+        dy = self.__ny - self.__y
 
         # checking fi the position is close enough to the new one
         if dx < 0.5:
-            self.x += dx
+            self.__x += dx
         if dy < 0.5:
-            self.y += dy
+            self.__y += dy
 
         # interpalating the old and new to smoothly move the box
-        self.x = CoreFuncs.Lerp(self.nx, self.x, 0.5)
-        self.y = CoreFuncs.Lerp(self.ny, self.y, 0.5)
+        self.__x = CoreFuncs.Lerp(self.__nx, self.__x, 0.5)
+        self.__y = CoreFuncs.Lerp(self.__ny, self.__y, 0.5)
 
         # the color of the text
         textColor = (255, 255, 255)
@@ -38,44 +41,96 @@ class Renderer:
             textColor = fadedText
 
         # rendering the box and the text
-        pygame.draw.rect(screen, (125, 125, 125), [self.nx + 5, self.ny + self.sy - 3, self.sx - 10, 3])
-        CoreFuncs.UI.text(screen, self.text, textColor, (self.x+5, self.y+5), 20)
+        pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3])
+        CoreFuncs.UI.text(screen, self.__text, textColor, (self.__x+5, self.__y+5), 20)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
-        return self.nx
+        return self.__nx
     def GetY(self) -> int:
-        return self.ny
+        return self.__ny
+    def GetOldX(self) -> int:
+        return self.__x
+    def GetOldY(self) -> int:
+        return self.__y
     def SetX(self, x: int) -> None:
-        self.nx = x
+        self.__nx = x
     def SetY(self, y: int) -> None:
-        self.ny = y
+        self.__ny = y
     def AddX(self, dx: int) -> None:
-        self.nx += dx
+        self.__nx += dx
     def AddY(self, dy: int) -> None:
-        self.ny += dy
+        self.__ny += dy
     
     # getters for size
     def GetSizeX(self) -> int:
-        return self.sx
+        return self.__sx
     def GetSizeY(self) -> int:
-        return self.sy
+        return self.__sy
+    
+    # updating stuff when moved
+    def Moved(self, *args) -> None:
+        pass  # doing nothing
 
 
 # for rendering notes, just adds rendering stuff
 class RendererNote (Renderer):
+    def __init__(self, x, y, sx, sy, text) -> None:
+        super().__init__(x, y, sx, sy, text)
+
+        # if the sub-nots is dropped down or not
+        self.__droppedDown = False
+    
     # the renderer
     def Render(self, id: int, screen: object) -> None:
-        super().Render(id, screen, fadedText=(255, 255, 255))  # rendering the other stuff
+        # rendering the general stuff
+        super().Render(id, screen, fadedText=(255, 255, 255))
         
-        # the drop down menu for the sub tasks
-        CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.nx + self.sx - 20, self.ny + self.sy - 20), 15)
+        # getting the char for the drop down button
+        char = "v"  # down button
+        if self.__droppedDown:
+            char = "^"  # up button
+        
+        # renderering the button for the drop down menu
+        CoreFuncs.UI.text(screen, char, (255, 255, 255), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 20), 15)
+    
+    # updating the drop down menus when the box is moved
+    def Moved(self, this: object, boxId: int, *args) -> None:
+        # getting the real index
+        realIndex = this.GetIndex(boxId)
+
+        # checking if the menu is down
+        if self.__droppedDown:
+            # resseting the position
+            self.__droppedDown = False
+
+            # getting the size of the drop down
+            size = 40  # a test value
+
+            # moving the boxes
+            this.ShiftBoxesY(realIndex, -size)
+
+    # gets/sets if the sub-notes is dropped
+    def GetDropped(self) -> bool:
+        return self.__droppedDown
+    def SetDropped(self, dropped: bool) -> None:
+        self.__droppedDown = dropped
+
+
+
+# ---------------------------------------- Update Functions ----------------------------------------
 
 
 # update function for notes
-def NoteUpdateFunc(boardId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
+def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
     # getting the box
-    box = self.GetBox(boardId)
+    box = self.GetBox(boxId)
+
+    # the renderer
+    renderer = box.GetRenderer()
+
+    # getting the actual index
+    realIndex = self.GetIndex(boxId)
     
     # checking if the box was clicked
     if mouseDown and box.CheckCollision(mx, my):
@@ -89,12 +144,22 @@ def NoteUpdateFunc(boardId: int, self: object, notes: typing.Dict, mouseDown: bo
         collsionX = CoreFuncs.Range(mx, colLeft, colLeft + 15)
         collsionY = CoreFuncs.Range(my, colTop, colTop + 15)
         if collsionX and collsionY:
-            # getting the actual index
-            realIndex = self.GetIndex(boardId)
+            # getting the size of the sub-notes
+            size = 40  # a test value
 
-            # checking the size fromt he sub notes, make it go out and change the icon to an up arrow and than when pressed make it go up, also render sub notes when down under the renderer
-            size = 40  # just for now
-            self.ShiftBoxesY(realIndex, size)
+            # checking if its dropped or undropped
+            if renderer.GetDropped():
+                # moving the boxes to the correct positions
+                self.ShiftBoxesY(realIndex, -size)
+
+                # swapping the dropped state
+                renderer.SetDropped(False)
+            else:
+                # moving the boxes to the correct positions
+                self.ShiftBoxesY(realIndex, size)
+
+                # swapping the dropped state
+                renderer.SetDropped(True)
 
             #CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.x + self.sx - 20, self.y + self.sy - 20), 15)
 
@@ -109,6 +174,10 @@ def NoteBoardUndateFunc(boardId: int, self: object, notes: typing.Dict, mouseDow
         currentBoard = boardId
         # updating the board
         currentBoardManager = GetBoard(notes)
+
+
+
+# ---------------------------------------- Data Loading/Parsing ----------------------------------------
 
 
 # sets up the noteboard
@@ -151,6 +220,10 @@ def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     
     # returning the noteboard, locked x
     return Buttons.TextBoxCollumnManager(boxes)
+
+
+
+# ---------------------------------------- Globals ----------------------------------------
 
 
 # the active board
