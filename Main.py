@@ -15,9 +15,7 @@ Try horizontal collumns maybe
 
 Objectives:
     * Add catagories within boards (multiple collumns, can be swapped around, notes can be moved between them)
-    * Finish the drop down system for sub-notes
-        - Render sub-notes
-        - Maybe clean up movement after drop down goes up, it jumps a couple of boxes wich might be fixed but maybe should be left, idk
+    * Maybe clean up movement after drop down goes up, it jumps a couple of boxes wich might be fixed but maybe should be left, idk
     * Move event parsing to a class in another file, also add more/better/cleaner interactions with the data
     * Add creation of boards and notes and sub-notes
     * Add saving/auto saving
@@ -40,7 +38,7 @@ noteJson = CoreFuncs.Json.LoadFile("save.json")
 noteBoards = NoteBoard.GetNoteBoards(noteJson["NoteBoards"])
 
 
-# event stuff
+# event stuff, move to another class and file
 mouseX, mouseY = 0, 0
 lastMouseX, lastMouseY = 0, 0
 

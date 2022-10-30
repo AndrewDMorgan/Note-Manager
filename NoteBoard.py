@@ -18,7 +18,7 @@ class Renderer:
         self.__ny = self.__y
 
     # rendering the box
-    def Render(self, boardId: int, screen: object, fadedText: typing.Tuple[int] = (200, 200, 200)) -> None:
+    def Render(self, boardId: int, screen: object, fadedText: typing.Tuple[int] = (200, 200, 200), *args) -> None:
         # the difference between the new and old x/y
         dx = self.__nx - self.__x
         dy = self.__ny - self.__y
@@ -42,7 +42,7 @@ class Renderer:
 
         # rendering the box and the text
         pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3])
-        CoreFuncs.UI.text(screen, self.__text, textColor, (self.__x+5, self.__y+5), 20)
+        CoreFuncs.UI.text(screen, self.__text, textColor, (self.__x + 5, self.__y + 5), 20)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
@@ -75,14 +75,20 @@ class Renderer:
 
 # for rendering notes, just adds rendering stuff
 class RendererNote (Renderer):
-    def __init__(self, x, y, sx, sy, text) -> None:
+    def __init__(self, x, y, sx, sy, text, noteJson: typing.Dict, noteId: int) -> None:
         super().__init__(x, y, sx, sy, text)
 
         # if the sub-nots is dropped down or not
         self.__droppedDown = False
+
+        # the dict for notes
+        self.__noteJson = noteJson
+        
+        # the id of the note
+        self.__noteId = noteId
     
     # the renderer
-    def Render(self, id: int, screen: object) -> None:
+    def Render(self, boardId: int, screen: object, *args) -> None:
         # rendering the general stuff
         super().Render(id, screen, fadedText=(255, 255, 255))
         
@@ -90,6 +96,19 @@ class RendererNote (Renderer):
         char = "v"  # down button
         if self.__droppedDown:
             char = "^"  # up button
+
+            # rendering a + to add a sub note
+            CoreFuncs.UI.text(screen, f"+", (255, 255, 255), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 20)
+
+            # rendering the sub notes
+            notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
+            subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
+
+            # looping through all the sub notes
+            i = 0
+            for subNote in subNotes:
+                CoreFuncs.UI.text(screen, f"    • {subNote}", (255, 255, 255), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
+                i += 1   # incrementing i
         
         # renderering the button for the drop down menu
         CoreFuncs.UI.text(screen, char, (255, 255, 255), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 20), 15)
@@ -105,7 +124,12 @@ class RendererNote (Renderer):
             self.__droppedDown = False
 
             # getting the size of the drop down
-            size = 40  # a test value
+            notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
+            subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
+
+            size = len(subNotes) * 20 + 5
+            if size == 5:
+                size = 0
 
             # moving the boxes
             this.ShiftBoxesY(realIndex, -size)
@@ -133,19 +157,27 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
     realIndex = self.GetIndex(boxId)
     
     # checking if the box was clicked
-    if mouseDown and box.CheckCollision(mx, my):
+    if mouseDown:
         # the objects position
         obX = box.GetX()
         obY = box.GetY()
-
-        # checking if the dropdown menu was clicked
+        
+        # checking if the dropdown menu or +sub note was clicked
         colLeft = obX + box.GetSizeX() - 20
         colTop  = obY + box.GetSizeY() - 20
-        collsionX = CoreFuncs.Range(mx, colLeft, colLeft + 15)
-        collsionY = CoreFuncs.Range(my, colTop, colTop + 15)
-        if collsionX and collsionY:
-            # getting the size of the sub-notes
-            size = 40  # a test value
+        collisionX = CoreFuncs.Range(mx, colLeft, colLeft + 15)
+        collisionY = CoreFuncs.Range(my, colTop, colTop + 15)
+        collisionY2 = CoreFuncs.Range(my, colTop + 20, colTop + 35)  # collision for new sub note
+
+        # checking if the dropdown button was pressed
+        if collisionX and collisionY:
+            # getting the size of the drop down
+            notes = notes[[key for key in notes][currentBoard]]["Notes"]
+            subNotes = notes[[key for key in notes][boxId]]["SubNotes"]
+
+            size = len(subNotes) * 20 + 5
+            if size == 5:
+                size = 0
 
             # checking if its dropped or undropped
             if renderer.GetDropped():
@@ -160,8 +192,9 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
 
                 # swapping the dropped state
                 renderer.SetDropped(True)
-
-            #CoreFuncs.UI.text(screen, "V", (255, 255, 255), (self.x + self.sx - 20, self.y + self.sy - 20), 15)
+        # checking if the new sub note button was pressed
+        elif renderer.GetDropped() and collisionX and collisionY2:
+            print("adding note")
 
 
 # the update function for note boards, take any number of args but only up to my is used
@@ -212,7 +245,7 @@ def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # looping through all the note boards
     i = 0
     for note in notes:
-        box = Buttons.TextBoxContainer(RendererNote(195, 20 + i * 50, 500, 40, note), updateFunc=NoteUpdateFunc)
+        box = Buttons.TextBoxContainer(RendererNote(195, 20 + i * 50, 500, 40, note, noteBoards, i), updateFunc=NoteUpdateFunc)
 
         # adding the box
         boxes.append(box)
@@ -220,6 +253,36 @@ def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     
     # returning the noteboard, locked x
     return Buttons.TextBoxCollumnManager(boxes)
+
+
+
+# ---------------------------------------- Setting Data ----------------------------------------
+
+
+# adds a new noteboard
+def AddNoteBoard(notesJson: typing.Dict, boardName: str) -> None:
+    # looping until a unique name is found
+    i = 0
+    found = False
+    while not found:
+        # checking if the name is already in the json
+        if boardName in notesJson["NoteBoards"]:
+            i += 1
+        else:
+            found = True
+
+    # adding the board
+    notesJson["NoteBoards"][boardName + i] = {}
+
+
+# adds a note
+def AddNote(notesJson: typing.Dict, boardName: str, noteName: str, subNotes: typing.List[str] = []) -> None:
+    notesJson["NoteBoards"][boardName]["Notes"][noteName] = {"SubNotes": subNotes}
+
+
+# adds a sub note
+def AddSubNote(notesJson: typing.Dict, boardName: str, noteName: str, newSubNotes: typing.List[str]) -> None:
+    [notesJson["NoteBoards"][boardName]["Notes"][noteName]["SubNotes"].append(note) for note in newSubNotes]
 
 
 
