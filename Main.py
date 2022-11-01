@@ -1,5 +1,5 @@
+import pygame, typing, time
 import CoreFuncs, NoteBoard
-import pygame, typing
 
 pygame.init()
 
@@ -45,12 +45,17 @@ lastMouseX, lastMouseY = 0, 0
 mouseDown = False
 mouseHeld = False
 
+dt = 0
+
 
 # the state of the application
 running = True
 
 # the main loop running everything
 while running:
+    # the start time of the frame
+    start = time.time()
+
     # getting the windows size for proper scalling/rendering
     screenWidth, screenHeight = pygame.display.get_surface().get_size()
 
@@ -85,16 +90,19 @@ while running:
 
 
     # clearing the screen
-    screen.fill((68, 68, 68))
+    screen.fill((50, 50, 50))
 
     # drawing the left collumn with the boards
-    pygame.draw.rect(screen, (45, 45, 45), [0, 0, 195, screenHeight])
+    pygame.draw.rect(screen, (40, 40, 40), [0, 0, 195, screenHeight])
 
     # rendering all the TextBoxContainers
-    noteBoards.Render(screen)
-    NoteBoard.currentBoardManager.Render(screen)
+    noteBoards.Render(screen, dt, screenWidth, screenHeight)
+    NoteBoard.currentBoardManager.Render(screen, dt, screenWidth, screenHeight, mouseX, mouseY)
 
     # updating the screen
     pygame.display.update()
 
+    # the end time of the frame and 1/the change in time (dt)
+    end = time.time()
+    dt = end - start
 
