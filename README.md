@@ -12,6 +12,7 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * Dark mode theme
  * Dropdown menus on notes for sub notes
  * Resizeable window
+ * Circles around buttons when hovering over them
 
 ## Planned Features
  * Calander/timed events
@@ -27,6 +28,14 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * Light mode theme
  * So many other features I haven't though of hopefully
 
+## Recently Updated
+ * Changed colors
+ * Added colorful buttons
+ * Added circles around buttons when hovering over them
+ * Fixed bug (under the Bugs header)
+ * Added delta time to the button movement calculation
+
 ## Bugs
  * Theoretically all items to the side in a 2D grid of TextBoxContainer's will be shifted with the shift method
+ * Fixed - when reording items with dropped menus the spacing would be thrown off (the wrong id/index was used, the origonal one instead of the shifted one was used)
  * No problematic bugs so far, knock on wood
