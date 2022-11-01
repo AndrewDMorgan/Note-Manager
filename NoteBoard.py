@@ -1,5 +1,5 @@
+import typing, pygame, math
 import Buttons, CoreFuncs
-import typing, pygame
 
 
 # ---------------------------------------- Renderers ----------------------------------------
@@ -18,20 +18,20 @@ class Renderer:
         self.__ny = self.__y
 
     # rendering the box
-    def Render(self, boardId: int, screen: object, fadedText: typing.Tuple[int] = (200, 200, 200), *args) -> None:
+    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, fadedText: typing.Tuple[int] = (200, 200, 200), *args) -> None:
         # the difference between the new and old x/y
         dx = self.__nx - self.__x
         dy = self.__ny - self.__y
 
-        # checking fi the position is close enough to the new one
-        if dx < 0.5:
+        # checking if the position is close enough to the new one
+        if abs(dx) < 0.5:
             self.__x += dx
-        if dy < 0.5:
+        if abs(dy) < 0.5:
             self.__y += dy
 
         # interpalating the old and new to smoothly move the box
-        self.__x = CoreFuncs.Lerp(self.__nx, self.__x, 0.5)
-        self.__y = CoreFuncs.Lerp(self.__ny, self.__y, 0.5)
+        self.__x = CoreFuncs.Lerp(self.__x, self.__nx, dt * 25)
+        self.__y = CoreFuncs.Lerp(self.__y, self.__ny, dt * 25)
 
         # the color of the text
         textColor = (255, 255, 255)
@@ -86,19 +86,26 @@ class RendererNote (Renderer):
         
         # the id of the note
         self.__noteId = noteId
+
+        # the changing in size
+        self.sizeOssolation = 0
     
     # the renderer
-    def Render(self, boardId: int, screen: object, *args) -> None:
+    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, mouseX: int, mouseY: int, *args) -> None:
         # rendering the general stuff
-        super().Render(id, screen, fadedText=(255, 255, 255))
+        super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255))
         
+        # the change in height to account for the height differece between v and ^
+        heightChange = 0
+
         # getting the char for the drop down button
         char = "v"  # down button
         if self.__droppedDown:
             char = "^"  # up button
+            heightChange = -4
 
             # rendering a + to add a sub note
-            CoreFuncs.UI.text(screen, f"+", (255, 255, 255), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 20)
+            CoreFuncs.UI.text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
 
             # rendering the sub notes
             notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
@@ -107,17 +114,37 @@ class RendererNote (Renderer):
             # looping through all the sub notes
             i = 0
             for subNote in subNotes:
-                CoreFuncs.UI.text(screen, f"    • {subNote}", (255, 255, 255), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
+                CoreFuncs.UI.text(screen, f"    • {subNote}", (255, 175, 55), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
+
+        # getting the positions of the buttons
+        left = self.GetX() + self.GetSizeX() - 20
+        top  = self.GetY() + self.GetSizeY() - 25
+        # checking if the x mouse axis is lined up with the buttons
+        if CoreFuncs.Range(mouseX, left, left + 15):
+            # checking if ethier buttons are being touched
+            if CoreFuncs.Range(mouseY, top, top + 20):
+                # making it change sizes slowely
+                self.sizeOssolation += dt * 2
+                # rendering the circle
+                pygame.draw.circle(screen, (255, 255, 255), [left + 6, top + 11], 10 + math.sin(self.sizeOssolation) * 2, 2)
+            elif self.__droppedDown and CoreFuncs.Range(mouseY, top + 35, top + 48):
+                # making it change sizes slowely
+                self.sizeOssolation += dt * 2
+                # rendering the circle
+                pygame.draw.circle(screen, (255, 255, 255), [left + 7, top + 11 + 29], 10 + math.sin(self.sizeOssolation) * 2, 2)
+            else:
+                # removing any size change
+                self.sizeOssolation = 0
+        else:
+            # removing any size change
+            self.sizeOssolation = 0
         
         # renderering the button for the drop down menu
-        CoreFuncs.UI.text(screen, char, (255, 255, 255), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 20), 15)
+        CoreFuncs.UI.text(screen, char, (255, 55, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 25 - heightChange), 20)
     
     # updating the drop down menus when the box is moved
     def Moved(self, this: object, boxId: int, *args) -> None:
-        # getting the real index
-        realIndex = this.GetIndex(boxId)
-
         # checking if the menu is down
         if self.__droppedDown:
             # resseting the position
@@ -132,7 +159,7 @@ class RendererNote (Renderer):
                 size = 0
 
             # moving the boxes
-            this.ShiftBoxesY(realIndex, -size)
+            this.ShiftBoxesY(boxId, -size)
 
     # gets/sets if the sub-notes is dropped
     def GetDropped(self) -> bool:
@@ -161,13 +188,13 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
         # the objects position
         obX = box.GetX()
         obY = box.GetY()
-        
+
         # checking if the dropdown menu or +sub note was clicked
         colLeft = obX + box.GetSizeX() - 20
-        colTop  = obY + box.GetSizeY() - 20
-        collisionX = CoreFuncs.Range(mx, colLeft, colLeft + 15)
-        collisionY = CoreFuncs.Range(my, colTop, colTop + 15)
-        collisionY2 = CoreFuncs.Range(my, colTop + 20, colTop + 35)  # collision for new sub note
+        colTop  = obY + box.GetSizeY() - 25
+        collisionX = CoreFuncs.Range(mx, colLeft, colLeft + 20)
+        collisionY = CoreFuncs.Range(my, colTop, colTop + 20)
+        collisionY2 = CoreFuncs.Range(my, colTop + 25, colTop + 48)  # collision for new sub note
 
         # checking if the dropdown button was pressed
         if collisionX and collisionY:
