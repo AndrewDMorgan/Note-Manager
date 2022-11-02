@@ -1,5 +1,5 @@
+import Buttons, CoreFuncs, Events
 import typing, pygame, math
-import Buttons, CoreFuncs
 
 
 # ---------------------------------------- Renderers ----------------------------------------
@@ -91,12 +91,13 @@ class RendererNote (Renderer):
         self.sizeOssolation = 0
     
     # the renderer
-    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, mouseX: int, mouseY: int, *args) -> None:
+    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, events: Events, *args) -> None:
         # rendering the general stuff
         super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255))
         
         # the change in height to account for the height differece between v and ^
         heightChange = 0
+        plusSprite = None
 
         # getting the char for the drop down button
         char = "v"  # down button
@@ -105,7 +106,7 @@ class RendererNote (Renderer):
             heightChange = -4
 
             # rendering a + to add a sub note
-            CoreFuncs.UI.text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
+            plusSprite = CoreFuncs.UI.text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
 
             # rendering the sub notes
             notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
@@ -116,33 +117,26 @@ class RendererNote (Renderer):
             for subNote in subNotes:
                 CoreFuncs.UI.text(screen, f"    • {subNote}", (255, 175, 55), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
+        
+        # renderering the button for the drop down menu
+        arrowSprite = CoreFuncs.UI.text(screen, char, (255, 55, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 25 - heightChange), 20)
 
-        # getting the positions of the buttons
         left = self.GetX() + self.GetSizeX() - 20
         top  = self.GetY() + self.GetSizeY() - 25
-        # checking if the x mouse axis is lined up with the buttons
-        if CoreFuncs.Range(mouseX, left, left + 15):
-            # checking if ethier buttons are being touched
-            if CoreFuncs.Range(mouseY, top, top + 20):
-                # making it change sizes slowely
-                self.sizeOssolation += dt * 2
-                # rendering the circle
-                pygame.draw.circle(screen, (255, 255, 255), [left + 6, top + 11], 10 + math.sin(self.sizeOssolation) * 2, 2)
-            elif self.__droppedDown and CoreFuncs.Range(mouseY, top + 35, top + 48):
-                # making it change sizes slowely
-                self.sizeOssolation += dt * 2
-                # rendering the circle
-                pygame.draw.circle(screen, (255, 255, 255), [left + 7, top + 11 + 29], 10 + math.sin(self.sizeOssolation) * 2, 2)
-            else:
-                # removing any size change
-                self.sizeOssolation = 0
+        if arrowSprite.collidepoint(events.mouseX, events.mouseY):
+            # making it change sizes slowely
+            self.sizeOssolation += dt * 2
+            # rendering the circle
+            pygame.draw.circle(screen, (255, 255, 255), [left + 6, top + 11], 10 + math.sin(self.sizeOssolation) * 2, 2)
+        elif plusSprite != None and plusSprite.collidepoint(events.mouseX, events.mouseY):
+            # making it change sizes slowely
+            self.sizeOssolation += dt * 2
+            # rendering the circle
+            pygame.draw.circle(screen, (255, 255, 255), [left + 7, top + 11 + 29], 10 + math.sin(self.sizeOssolation) * 2, 2)
         else:
             # removing any size change
             self.sizeOssolation = 0
-        
-        # renderering the button for the drop down menu
-        CoreFuncs.UI.text(screen, char, (255, 55, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 25 - heightChange), 20)
-    
+
     # updating the drop down menus when the box is moved
     def Moved(self, this: object, boxId: int, *args) -> None:
         # checking if the menu is down
@@ -173,7 +167,7 @@ class RendererNote (Renderer):
 
 
 # update function for notes
-def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
+def NoteUpdateFunc(boxId: int, events: Events, self: object, notes: typing.Dict, *args) -> None:
     # getting the box
     box = self.GetBox(boxId)
 
@@ -184,7 +178,7 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
     realIndex = self.GetIndex(boxId)
     
     # checking if the box was clicked
-    if mouseDown:
+    if events.mouseDown:
         # the objects position
         obX = box.GetX()
         obY = box.GetY()
@@ -192,9 +186,9 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
         # checking if the dropdown menu or +sub note was clicked
         colLeft = obX + box.GetSizeX() - 20
         colTop  = obY + box.GetSizeY() - 25
-        collisionX = CoreFuncs.Range(mx, colLeft, colLeft + 20)
-        collisionY = CoreFuncs.Range(my, colTop, colTop + 20)
-        collisionY2 = CoreFuncs.Range(my, colTop + 25, colTop + 48)  # collision for new sub note
+        collisionX = CoreFuncs.Range(events.mouseX, colLeft, colLeft + 20)
+        collisionY = CoreFuncs.Range(events.mouseY, colTop, colTop + 22)
+        collisionY2 = CoreFuncs.Range(events.mouseY, colTop + 25, colTop + 50)  # collision for new sub note
 
         # checking if the dropdown button was pressed
         if collisionX and collisionY:
@@ -225,11 +219,11 @@ def NoteUpdateFunc(boxId: int, self: object, notes: typing.Dict, mouseDown: bool
 
 
 # the update function for note boards, take any number of args but only up to my is used
-def NoteBoardUndateFunc(boardId: int, self: object, notes: typing.Dict, mouseDown: bool, mx: int, my: int, *args) -> None:
+def NoteBoardUndateFunc(boardId: int, events: Events, self: object, notes: typing.Dict, *args) -> None:
     global currentBoard, currentBoardManager
 
     # checking if the board was messed with
-    if mouseDown and self.GetBox(boardId).CheckCollision(mx, my):
+    if events.mouseDown and self.GetBox(boardId).CheckCollision(events.mouseX, events.mouseY):
         # setting the active board to this one
         currentBoard = boardId
         # updating the board
@@ -262,6 +256,7 @@ def GetNoteBoards(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     return Buttons.TextBoxCollumnManager(boxes)
 
 
+# getts the note objects from the given board
 def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # getting the notes for the note board
     notes = noteBoards[[key for key in noteBoards][currentBoard]]["Notes"]

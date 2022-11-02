@@ -1,5 +1,9 @@
+import CoreFuncs, NoteBoard, Events
 import pygame, typing, time
-import CoreFuncs, NoteBoard
+
+
+import Buttons
+
 
 pygame.init()
 
@@ -38,12 +42,8 @@ noteJson = CoreFuncs.Json.LoadFile("save.json")
 noteBoards = NoteBoard.GetNoteBoards(noteJson["NoteBoards"])
 
 
-# event stuff, move to another class and file
-mouseX, mouseY = 0, 0
-lastMouseX, lastMouseY = 0, 0
-
-mouseDown = False
-mouseHeld = False
+# event stuff
+events = Events.Events()
 
 dt = 0
 
@@ -59,34 +59,17 @@ while running:
     # getting the windows size for proper scalling/rendering
     screenWidth, screenHeight = pygame.display.get_surface().get_size()
 
-    # getting the mosues last and current position
-    lastMouseX, lastMouseY = mouseX, mouseY
-    mouseX, mouseY = pygame.mouse.get_pos()
+    # updating the mouse position
+    events.UpdateMousePosition()
 
-    # setting mouseDown to False unless the mouse is clicked
-    mouseDown = False
+    # updating the keyboard events and the running state of the application
+    running = events.UpdateEvents()
 
-    # checking events (move to class/separate script)
-    for event in pygame.event.get():
-        # checking if the window was quit
-        if event.type == pygame.QUIT:
-            # stopping the main loop as the application was quit
-            running = False
-            break
-        if event.type == pygame.MOUSEBUTTONDOWN:
-            mouseDown = True
-            mouseHeld = True
-        if event.type == pygame.MOUSEBUTTONUP:
-            mouseHeld = False
-
-    # checking if the application was quit
-    if not running:
-        break
-    
 
     # updating the TextBoxContainers
-    noteBoards.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, noteBoards, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
-    NoteBoard.currentBoardManager.Update(mouseX, mouseY, lastMouseX, lastMouseY, mouseHeld, NoteBoard.currentBoardManager, noteJson["NoteBoards"], mouseDown, mouseX, mouseY)
+    noteBoards.Update(events, noteBoards, noteJson["NoteBoards"])
+    
+    NoteBoard.currentBoardManager.Update(events, NoteBoard.currentBoardManager, noteJson["NoteBoards"])
 
 
     # clearing the screen
@@ -97,10 +80,11 @@ while running:
 
     # rendering all the TextBoxContainers
     noteBoards.Render(screen, dt, screenWidth, screenHeight)
-    NoteBoard.currentBoardManager.Render(screen, dt, screenWidth, screenHeight, mouseX, mouseY)
+    NoteBoard.currentBoardManager.Render(screen, dt, screenWidth, screenHeight, events)
 
     # updating the screen
     pygame.display.update()
+
 
     # the end time of the frame and 1/the change in time (dt)
     end = time.time()

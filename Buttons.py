@@ -1,5 +1,6 @@
-import enum, CoreFuncs, typing
+import enum, CoreFuncs, typing, pygame
 from types import FunctionType
+import Events
 
 
 # ---------------------------------------- Buttons ----------------------------------------
@@ -226,9 +227,9 @@ class TextBoxCollumnManager (TextBoxManager):
         self.SetBoxes(boxes)
 
     # updating the text boxes
-    def Update(self, mx: int, my: int, lmx: int, lmy: int, mouseHeld: bool, *args) -> None:
+    def Update(self, events: Events, *args) -> None:
         # updating the boxes from the base class
-        super().Update(*args)
+        super().Update(events, *args)
 
         # getting the boxes
         boxes = self.GetBoxes()
@@ -236,10 +237,10 @@ class TextBoxCollumnManager (TextBoxManager):
         # checking if a box is currently being held
         if self.__heldI == -1:
             # checking if a box should be picked up
-            if mouseHeld:
+            if events.mouseHeld:
                 # looping through all the boxes
                 for box in boxes:
-                    if box.CheckCollision(mx, my):
+                    if box.CheckCollision(events.mouseX, events.mouseY):
                         # setting the new held box
                         self.__heldI = boxes.index(box)  # getting the index of the box
         else:
@@ -248,7 +249,7 @@ class TextBoxCollumnManager (TextBoxManager):
             box = boxes[self.__heldI]
 
             # getting the mouse position for the moving
-            px, py = mx, my
+            px, py = events.mouseX, events.mouseY
             if self.lockX == 0:
                 px = box.GetX()
             if self.lockY == 0:
@@ -297,6 +298,93 @@ class TextBoxCollumnManager (TextBoxManager):
         self.SetBoxes(boxes)
 
         # removing all held boxes once the mouse is no longer being pressed
-        if not mouseHeld:
+        if not events.mouseHeld:
             self.__heldI = -1
+
+
+
+# ---------------------------------------- Typing Boxes + Combinations ----------------------------------------
+
+
+# global for the typing box
+_ALLOWED_CHARS = list("abcdefghijklmnopqrstuvwxyz0123456789`-=[]\\;',./")
+_CAP_CHARS     = list("ABCDEFGHIJKLMNOPQRSTUVWXYZ)!@#$%^&*(~_+{}|:\"<>?")
+_OPT_CHARS     = list("å∫ç∂´ƒ©˙ˆ∆˚¬µ˜øπœ®ß†¨√∑≈¥ º¡™£¢∞§¶•¡`–≠“‘«…æ≤≥÷")
+
+
+# a basic text box
+class TypingBox:
+    def __init__(self, centerX: int, centerY: int, baseText: str="Type Here") -> None:
+        self.centerX = centerX
+        self.centerY = centerY
+        self.baseText = baseText
+
+        self.currentText = ""
+    
+    # updating the typing box
+    def Update(self, events: Events, *args) -> None:
+        # getting the correct character set
+        chars = _ALLOWED_CHARS
+        if events.shiftHeld:
+            chars = _CAP_CHARS
+        elif events.optionHeld:
+            chars = _OPT_CHARS
+        
+        # checking if its a command not typing
+        if events.commandHeld or events.controlHeld:
+            return
+
+        # looping through the events and adding them to the text
+        for event in events.events:
+            # checking for deletion of letters
+            if event == "backspace":
+                self.currentText = self.currentText[:-1]
+
+            # checking for the space key
+            elif event == "space":
+                self.currentText += " "
+
+            # checking if the event is a valid typable keypress
+            elif event in _ALLOWED_CHARS:
+                # getting the correct char
+                char = chars[_ALLOWED_CHARS.index(event)]
+                self.currentText += char
+    
+    # rendering the typing box
+    def Render(self, screen: pygame.Surface, *args) -> None:
+        # checking if anything is writen or not and setting the text accordingly
+        text = self.currentText
+        if text == "":
+            text = self.baseText
+
+        # rendering the text
+        textSprite = CoreFuncs.UI.text(screen, text, (255, 255, 255), (self.centerX, self.centerY), 25, center=True)
+
+
+# for a text box with a typing box
+class TextTypingBox (TextBoxContainer):
+    def __init__(self, renderer: object, updateFunc: FunctionType, typingBox: TypingBox) -> None:
+        super().__init__(renderer, updateFunc=updateFunc)
+
+        self.typingBox = typingBox
+    
+    # updating the text box and typing box
+    def Update(self, *args) -> None:
+        # updating the base box
+        super().Update()
+
+        # updating the typingbox
+        self.typingBox.Update(*args)
+
+    # rendering the text box and typing box
+    def Render(self, *args) -> None:
+        # rendering the base box
+        super().Render(*args)
+
+        # rendering the typing box
+        self.typingBox.Render(*args)
+
+    # gets the typing box
+    def GetTypingBox(self) -> TypingBox:
+        return self.typingBox
 

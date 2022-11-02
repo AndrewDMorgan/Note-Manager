@@ -7,7 +7,7 @@ import json, pygame
 # ui (just text for now)
 class UI:
     # rendering text with many options (transparecy, size, centering, color, font, ect...)
-    def text(screen: object, text: str, color, pos, size: float, center: bool = False, font: str = 'Neon.ttf', trans: int = 255):
+    def text(screen: object, text: str, color, pos, size: float, center: bool = False, font: str = 'Neon.ttf', trans: int = 255) -> pygame.Rect:
         largeText = pygame.font.Font(font, size)
         textSurface = largeText.render(text, True, color)
         TextSurf, TextRect = textSurface, textSurface.get_rect()
