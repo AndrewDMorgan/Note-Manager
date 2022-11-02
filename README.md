@@ -3,7 +3,7 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
 
 ## Much more information bellow
 
-![Note Manager Screenshot (10/28/22)](https://github.com/AndrewDMorgan/Note-Manager/blob/main/Screen%20Shot%202022-10-28%20at%208.39.20%20PM.png?raw=true)
+![Note Manager Screenshot (10/28/22)](https://github.com/AndrewDMorgan/Note-Manager/blob/main/Screen%20Shot%202022-11-01%20at%2010.51.47%20PM.png?raw=true)
 
 ## Current Features
  * Noteboard veiwing and selecting
@@ -29,6 +29,7 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * So many other features I haven't though of hopefully
 
 ## Recently Updated
+ * Replaced manual collition with pygame.Rect improving rendering of circle around hovered over buttons
  * Added basic typing field class, more functionality coming
  * Added Events.py to manage keyboard/mouse events
  * Refactored code to work but Events.py (cleaned up parameters A LOT)
