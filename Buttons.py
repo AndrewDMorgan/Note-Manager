@@ -1,4 +1,4 @@
-import enum, CoreFuncs, typing, pygame
+import enum, CoreFuncs, typing, pygame, math
 from types import FunctionType
 import Events
 
@@ -320,15 +320,25 @@ class TypingBox:
         self.baseText = baseText
 
         self.currentText = ""
+        self.currentChar = 0
     
     # updating the typing box
-    def Update(self, events: Events, *args) -> None:
+    def Update(self, events: Events, dt: float, *args) -> None:
         # getting the correct character set
         chars = _ALLOWED_CHARS
         if events.shiftHeld:
             chars = _CAP_CHARS
         elif events.optionHeld:
             chars = _OPT_CHARS
+        
+        # moving the cursor
+        if "left" in events.events:
+            self.currentChar -= 1
+        if "right" in events.events:
+            self.currentChar += 1
+        
+        # setting the bounds of the cursor
+        self.currentChar = min(max(self.currentChar, 0), len(self.currentText))
         
         # checking if its a command not typing
         if events.commandHeld or events.controlHeld:
@@ -338,17 +348,20 @@ class TypingBox:
         for event in events.events:
             # checking for deletion of letters
             if event == "backspace":
-                self.currentText = self.currentText[:-1]
+                self.currentText = self.currentText[:self.currentChar - 1] + self.currentText[self.currentChar:]
+                self.currentChar -= 1
 
             # checking for the space key
             elif event == "space":
-                self.currentText += " "
+                self.currentText = self.currentText[:self.currentChar] + " " + self.currentText[self.currentChar:]
+                self.currentChar += 1
 
             # checking if the event is a valid typable keypress
             elif event in _ALLOWED_CHARS:
                 # getting the correct char
                 char = chars[_ALLOWED_CHARS.index(event)]
-                self.currentText += char
+                self.currentText = self.currentText[:self.currentChar] + char + self.currentText[self.currentChar:]
+                self.currentChar += 1
     
     # rendering the typing box
     def Render(self, screen: pygame.Surface, *args) -> None:
@@ -356,6 +369,10 @@ class TypingBox:
         text = self.currentText
         if text == "":
             text = self.baseText
+
+        # adding the cursor
+        cursor = "|"
+        text = text[:self.currentChar] + cursor + text[self.currentChar:]
 
         # rendering the text
         textSprite = CoreFuncs.UI.text(screen, text, (255, 255, 255), (self.centerX, self.centerY), 25, center=True)
