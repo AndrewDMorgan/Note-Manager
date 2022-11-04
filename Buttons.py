@@ -315,12 +315,12 @@ _OPT_CHARS     = list("å∫ç∂´ƒ©˙ˆ∆˚¬µ˜øπœ®ß†¨√∑≈¥
 # a basic text box
 class TypingBox:
     def __init__(self, centerX: int, centerY: int, baseText: str="Type Here") -> None:
-        self.centerX = centerX
-        self.centerY = centerY
-        self.baseText = baseText
+        self.__centerX = centerX
+        self.__centerY = centerY
+        self.__baseText = baseText
 
-        self.currentText = ""
-        self.currentChar = 0
+        self.__currentText = ""
+        self.__currentChar = 0
     
     # updating the typing box
     def Update(self, events: Events, dt: float, *args) -> None:
@@ -333,12 +333,12 @@ class TypingBox:
         
         # moving the cursor
         if "left" in events.events:
-            self.currentChar -= 1
+            self.__currentChar -= 1
         if "right" in events.events:
-            self.currentChar += 1
+            self.__currentChar += 1
         
         # setting the bounds of the cursor
-        self.currentChar = min(max(self.currentChar, 0), len(self.currentText))
+        self.currentChar = min(max(self.__currentChar, 0), len(self.__currentText))
         
         # checking if its a command not typing
         if events.commandHeld or events.controlHeld:
@@ -348,34 +348,48 @@ class TypingBox:
         for event in events.events:
             # checking for deletion of letters
             if event == "backspace":
-                self.currentText = self.currentText[:self.currentChar - 1] + self.currentText[self.currentChar:]
-                self.currentChar -= 1
+                self.__currentText = self.__currentText[:self.__currentChar - 1] + self.__currentText[self.__currentChar:]
+                self.__currentChar -= 1
 
             # checking for the space key
             elif event == "space":
-                self.currentText = self.currentText[:self.currentChar] + " " + self.currentText[self.currentChar:]
-                self.currentChar += 1
+                self.__currentText = self.__currentText[:self.__currentChar] + " " + self.__currentText[self.__currentChar:]
+                self.__currentChar += 1
 
             # checking if the event is a valid typable keypress
             elif event in _ALLOWED_CHARS:
                 # getting the correct char
                 char = chars[_ALLOWED_CHARS.index(event)]
-                self.currentText = self.currentText[:self.currentChar] + char + self.currentText[self.currentChar:]
-                self.currentChar += 1
+                self.__currentText = self.__currentText[:self.__currentChar] + char + self.__currentText[self.__currentChar:]
+                self.__currentChar += 1
     
     # rendering the typing box
     def Render(self, screen: pygame.Surface, *args) -> None:
         # checking if anything is writen or not and setting the text accordingly
-        text = self.currentText
+        text = self.__currentText
         if text == "":
-            text = self.baseText
+            text = self.__baseText
 
         # adding the cursor
         cursor = "|"
-        text = text[:self.currentChar] + cursor + text[self.currentChar:]
+        text = text[:self.__currentChar] + cursor + text[self.__currentChar:]
 
         # rendering the text
-        textSprite = CoreFuncs.UI.text(screen, text, (255, 255, 255), (self.centerX, self.centerY), 25, center=True)
+        textSprite = CoreFuncs.UI.text(screen, text, (255, 255, 255), (self.__centerX, self.__centerY), 25, center=True)
+    
+    # getters and setters for the text
+    def GetText(self) -> str:
+        return self.__currentText
+    def SetText(self, text: str) -> None:
+        self.__currentText = text
+        # resetting the cursors position
+        self.__currentChar = 0
+    
+    # setters for the position
+    def SetX(self, x: int) -> None:
+        self.__centerX = x
+    def SetY(self, y: int) -> None:
+        self.__centerY = y
 
 
 # for a text box with a typing box

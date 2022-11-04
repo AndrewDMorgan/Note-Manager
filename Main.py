@@ -1,9 +1,5 @@
-import CoreFuncs, NoteBoard, Events
-import pygame, typing, time
-
-
-import Buttons
-
+import CoreFuncs, NoteBoard, Events, BoardCreator
+import pygame, time
 
 pygame.init()
 
@@ -37,9 +33,7 @@ screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 
 
 # opening the save data for the noteboard
-noteJson = CoreFuncs.Json.LoadFile("save.json")
-
-noteBoards = NoteBoard.GetNoteBoards(noteJson["NoteBoards"])
+noteBoards = NoteBoard.GetNoteBoards(NoteBoard.noteJson["NoteBoards"])
 
 
 # event stuff
@@ -66,11 +60,18 @@ while running:
     running = events.UpdateEvents()
 
 
-    # updating the TextBoxContainers
-    noteBoards.Update(events, noteBoards, noteJson["NoteBoards"])
-    
-    NoteBoard.currentBoardManager.Update(events, NoteBoard.currentBoardManager, noteJson["NoteBoards"])
+    # -------- Updating Stuff --------
 
+    # updating the TextBoxContainers
+    noteBoards.Update(events, noteBoards, NoteBoard.noteJson["NoteBoards"])
+    NoteBoard.currentBoardManager.Update(events, NoteBoard.currentBoardManager)
+
+    # updating the typingCreator and boardCreator
+    BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
+    BoardCreator.boardCreator.Update()
+
+
+    # -------- Rendering Stuff --------
 
     # clearing the screen
     screen.fill((50, 50, 50))
@@ -81,6 +82,9 @@ while running:
     # rendering all the TextBoxContainers
     noteBoards.Render(screen, dt, screenWidth, screenHeight)
     NoteBoard.currentBoardManager.Render(screen, dt, screenWidth, screenHeight, events)
+
+    # rendering the typingCreator
+    BoardCreator.typingCreator.Render(screen)
 
     # updating the screen
     pygame.display.update()

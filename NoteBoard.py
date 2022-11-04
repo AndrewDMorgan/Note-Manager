@@ -1,4 +1,4 @@
-import Buttons, CoreFuncs, Events
+import Buttons, CoreFuncs, Events, BoardCreator
 import typing, pygame, math
 
 
@@ -167,7 +167,7 @@ class RendererNote (Renderer):
 
 
 # update function for notes
-def NoteUpdateFunc(boxId: int, events: Events, self: object, notes: typing.Dict, *args) -> None:
+def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
     # getting the box
     box = self.GetBox(boxId)
 
@@ -190,12 +190,14 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, notes: typing.Dict,
         collisionY = CoreFuncs.Range(events.mouseY, colTop, colTop + 22)
         collisionY2 = CoreFuncs.Range(events.mouseY, colTop + 25, colTop + 50)  # collision for new sub note
 
+        # getting the notes and sub notes
+        notes = noteJson["NoteBoards"][[key for key in noteJson["NoteBoards"]][currentBoard]]["Notes"]
+        note = notes[[key for key in notes][boxId]]
+        subNotes = note["SubNotes"]
+
         # checking if the dropdown button was pressed
         if collisionX and collisionY:
             # getting the size of the drop down
-            notes = notes[[key for key in notes][currentBoard]]["Notes"]
-            subNotes = notes[[key for key in notes][boxId]]["SubNotes"]
-
             size = len(subNotes) * 20 + 5
             if size == 5:
                 size = 0
@@ -215,7 +217,10 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, notes: typing.Dict,
                 renderer.SetDropped(True)
         # checking if the new sub note button was pressed
         elif renderer.GetDropped() and collisionX and collisionY2:
-            print("adding note")
+            # making sure nothing else is using the typingCreator
+            if not BoardCreator.typingCreator.GetActive():
+                # adding a new subnote
+                BoardCreator.boardCreator.AddSubNote(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self))
 
 
 # the update function for note boards, take any number of args but only up to my is used
@@ -313,4 +318,7 @@ def AddSubNote(notesJson: typing.Dict, boardName: str, noteName: str, newSubNote
 
 # the active board
 currentBoard = 0
+
+noteJson = CoreFuncs.Json.LoadFile("save.json")
+
 
