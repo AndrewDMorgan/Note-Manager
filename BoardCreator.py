@@ -46,6 +46,9 @@ class TypingCreator:
 
 # manages the typingCreator
 class BoardCreator:
+    
+    # ---------------- Adder Classes ----------------
+
     # stores the subnotes and adds to them
     class SubNoteAdder:
         def __init__(self, subNotes: typing.List[str], boxId: int, boardManager: Buttons.TextBoxCollumnManager) -> None:
@@ -64,6 +67,9 @@ class BoardCreator:
         SUBNOTE = 1
         NOTE = 2
         BOARD = 3
+
+
+    # ---------------- Main Class Stuff ----------------
 
     def __init__(self) -> None:
         self.__state = self.States.NONE
