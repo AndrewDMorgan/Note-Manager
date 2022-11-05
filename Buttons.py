@@ -375,7 +375,19 @@ class TypingBox:
         text = text[:self.__currentChar] + cursor + text[self.__currentChar:]
 
         # rendering the text
-        textSprite = CoreFuncs.UI.text(screen, text, (255, 255, 255), (self.__centerX, self.__centerY), 25, center=True)
+        textSurf = pygame.Surface((self.__centerX*2, self.__centerY*2))
+        textSurf.set_colorkey((0, 0, 0))
+        textSprite = CoreFuncs.UI.text(textSurf, text, (255, 255, 255), (self.__centerX, self.__centerY), 25, center=True)
+
+        # rendering a faded box under it to make it more visable
+        sizeX, sizeY = textSprite.size
+        sizeX += 4
+        sizeY += 2
+        surf = pygame.Surface((sizeX, sizeY))
+        pygame.draw.rect(surf, (0, 0, 0), [0, 0, sizeX, sizeY], border_radius=4)
+        surf.set_alpha(50)
+        screen.blit(surf, (self.__centerX - sizeX//2, self.__centerY - sizeY//2))
+        screen.blit(textSurf, (0, 0))
     
     # getters and setters for the text
     def GetText(self) -> str:

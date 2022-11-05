@@ -220,7 +220,7 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
             # making sure nothing else is using the typingCreator
             if not BoardCreator.typingCreator.GetActive():
                 # adding a new subnote
-                BoardCreator.boardCreator.AddSubNote(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self))
+                BoardCreator.boardCreator.AddAdder(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self), BoardCreator.boardCreator.States.SUBNOTE)
 
 
 # the update function for note boards, take any number of args but only up to my is used

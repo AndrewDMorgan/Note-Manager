@@ -46,7 +46,7 @@ class TypingCreator:
 
 # manages the typingCreator
 class BoardCreator:
-    
+
     # ---------------- Adder Classes ----------------
 
     # stores the subnotes and adds to them
@@ -60,6 +60,28 @@ class BoardCreator:
         def Add(self, text: str) -> None:
             self.__subNotes.append(text)
             self.__boardManager.ShiftBoxesY(self.__boxId, 20)
+    
+    # stores the notes and adds one
+    class NotesAdder:
+        def __init__(self, notes: typing.Dict) -> None:
+            self.notes = notes
+        
+        # adding the note
+        def Add(self, text: str) -> None:
+            # adding the note
+            self.notes[text] = {"SubNotes":[]}
+    
+    # stores and adds a board
+    class BoardAdder:
+        def __init__(self, boards: typing.Dict) -> None:
+            self.boards = boards
+        
+        # adding the board
+        def Add(self, text: str) -> None:
+            # adding the board
+            self.boards[text] = {"Notes":{}}
+            # setting the current board to the new board
+            NoteBoard.currentBoard = [key for key in self.boards].index(self.boards)
 
     # the state of what is going on
     class States (enum.Enum):
@@ -75,12 +97,12 @@ class BoardCreator:
         self.__state = self.States.NONE
     
     # adds a subnote
-    def AddSubNote(self, adder: object) -> None:
+    def AddAdder(self, adder: object, state: enum.Enum) -> None:
         # setting the typingCreator to active to get the name
         typingCreator.SetActive(True)
-        self.__state = self.States.SUBNOTE
+        self.__state = state
         self.__adder = adder
-
+    
     # updating the boardCreator
     def Update(self) -> None:
         # checking if the typing was completed if something is also being added

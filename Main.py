@@ -49,7 +49,7 @@ running = True
 while running:
     # the start time of the frame
     start = time.time()
-
+    
     # getting the windows size for proper scalling/rendering
     screenWidth, screenHeight = pygame.display.get_surface().get_size()
 

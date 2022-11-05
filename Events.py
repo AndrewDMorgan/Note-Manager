@@ -53,7 +53,7 @@ class Events:
         # updating the current position of the mouse
         self.mouseX, self.mouseY = pygame.mouse.get_pos()
 
-    # gets events
+    # updates events
     def UpdateEvents(self) -> bool:
         # resetting the mouse sate
         self.mouseDown = False
