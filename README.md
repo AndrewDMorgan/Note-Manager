@@ -6,31 +6,26 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
 ![Note Manager Screenshot (10/28/22)](https://github.com/AndrewDMorgan/Note-Manager/blob/main/Screen%20Shot%202022-11-01%20at%2010.51.47%20PM.png?raw=true)
 
 ## Current Features
- * Noteboard veiwing and selecting
- * Note viewing
- * Note and noteboard reordering
- * Dark mode theme
+ * General note view with boards, notes, and sub-notes
  * Dropdown menus on notes for sub notes
- * Resizeable window
  * Circles around buttons when hovering over them
- * Adding sub-notes
+ * Adding sub-notes & notes
 
 ## Planned Features
  * Calander/timed events
  * Catagories within note boards
  * Completing tasks
- * Adding notes and note boards
  * Settings to customize the application
  * Saving and auto saving
- * Sub notes rendering
  * Different sorting modes for calander events
  * Different views, calander view, note view, ect... with different ordering/sorting options
- * Light mode theme
+ * Light mode theme and other settings
  * So many other features I haven't though of hopefully
 
 ## Recently Updated
- * Added the ability to create sub-notes
- * Added functionality that will support adding boards & notes
+  * Added note creation
+  * Refactored code
+  * Renamed Buttons.py to UI.py and moved CoreFuncs.py.UI to UI.py
 
 ## Bugs
  * Theoretically all items to the side in a 2D grid of TextBoxContainer's will be shifted with the shift method
