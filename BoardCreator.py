@@ -139,7 +139,10 @@ class BoardCreator:
 
 
 # update function for creating a new note
-def NewNoteUpdateFunc(events: Events.Events, *args) -> None:
+def NewNoteUpdateFunc(events: Events.Events, button: UI.Button, screenWidth: int, *args) -> None:
+    # adjusting the position of the button
+    button.SetX(screenWidth - 15 - 21//2)
+    
     # making sure nothing else is using the typingCreator
     if not typingCreator.GetActive():
         # getting the note boards

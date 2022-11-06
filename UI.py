@@ -60,6 +60,16 @@ class Button:
     # rendering the button
     def Render(self, *args) -> None:
         self.__renderer.Render(*args)
+    
+    # setters and getters for position
+    def SetX(self, x: int) -> None:
+        self.__x = x
+    def SetY(self, y: int) -> None:
+        self.__y = y
+    def GetX(self) -> None:
+        return self.__x
+    def GetY(self) -> None:
+        return self.__y
 
 
 # manages a set of buttons
@@ -339,7 +349,7 @@ class TypingBox:
             self.__currentChar -= 1
         if "right" in events.events:
             self.__currentChar += 1
-                
+        
         # checking if its a command not typing
         if events.commandHeld or events.controlHeld:
             return
