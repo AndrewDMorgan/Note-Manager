@@ -339,10 +339,7 @@ class TypingBox:
             self.__currentChar -= 1
         if "right" in events.events:
             self.__currentChar += 1
-        
-        # setting the bounds of the cursor
-        self.currentChar = min(max(self.__currentChar, 0), len(self.__currentText))
-        
+                
         # checking if its a command not typing
         if events.commandHeld or events.controlHeld:
             return
@@ -365,6 +362,9 @@ class TypingBox:
                 char = chars[_ALLOWED_CHARS.index(event)]
                 self.__currentText = self.__currentText[:self.__currentChar] + char + self.__currentText[self.__currentChar:]
                 self.__currentChar += 1
+        
+        # setting the bounds of the cursor
+        self.__currentChar = min(max(self.__currentChar, 0), len(self.__currentText))
     
     # rendering the typing box
     def Render(self, screen: pygame.Surface, *args) -> None:
