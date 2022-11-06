@@ -15,7 +15,7 @@ class Button:
         Pressed = 2
         Realeased = 3
 
-    def __init__(self, x: int, y: int, sizeX: int, sizeY: int, action: FunctionType, renderer: FunctionType) -> None:
+    def __init__(self, x: int, y: int, sizeX: int, sizeY: int, action: FunctionType, renderer: object) -> None:
         # the postion and size of the button
         self.__x = x
         self.__y = y
@@ -29,37 +29,37 @@ class Button:
         self.__renderer = renderer
 
         # the state of the button
-        self.__state = self.State.up
+        self.__state = self.State.Up
     
     # updating the button
-    def Update(self, mx: int, my: int, mouseHeld: bool) -> None:
-        self.GetState(mx, my, mouseHeld)
+    def Update(self, events: Events.Events, *args) -> None:
+        self.UpdateState(events)
 
         # checking if the button has been pressed
         if self.__state == self.State.Realeased:
-            self.__action()  # calling the function assosiated with the pressing of the button
+            self.__action(*args)  # calling the function assosiated with the pressing of the button
 
     # updating the state of the button
-    def UpdateState(self, mx: int, my: int, mouseHeld: bool) -> None:
+    def UpdateState(self, events: Events.Events) -> None:
         # checking if the button should be clicked
-        boundsX = CoreFuncs.Range(mx, self.__x, self.__x + self.__sizeX)
-        boundsY = CoreFuncs.Range(my, self.__y, self.__y + self.__sizeY)
+        boundsX = CoreFuncs.Range(events.mouseX, self.__x, self.__x + self.__sizeX)
+        boundsY = CoreFuncs.Range(events.mouseY, self.__y, self.__y + self.__sizeY)
 
         # checking wich state the button is in
-        if mouseHeld and boundsX and boundsY:
-            if self.__state == self.Sate.Up:
+        if events.mouseHeld and boundsX and boundsY:
+            if self.__state == self.State.Up:
                 self.__state = self.State.Pressed
             else:
                 self.__state = self.State.Down
-        else:
+        elif not events.mouseHeld:
             if self.__state == self.State.Down:
                 self.__state = self.State.Realeased
             else:
                 self.__state = self.State.Up
     
     # rendering the button
-    def Render(self) -> None:
-        self.__renderer.Render()
+    def Render(self, *args) -> None:
+        self.__renderer.Render(*args)
 
 
 # manages a set of buttons
@@ -185,6 +185,9 @@ class TextBoxManager:
     # gets a box at an index accounting for movement of the boxes
     def GetBox(self, i: int) -> TextBoxContainer:
         return self.__boxes[self.__indexes.index(i)]
+    def AddBox(self, box: TextBoxContainer) -> None:
+        self.__boxes.append(box)
+        self.__indexes.append(len(self.__boxes) - 1)
     
     # getting and setting the indexes
     def GetIndexes(self) -> typing.List[int]:
@@ -377,7 +380,7 @@ class TypingBox:
         # rendering the text
         textSurf = pygame.Surface((self.__centerX*2, self.__centerY*2))
         textSurf.set_colorkey((0, 0, 0))
-        textSprite = CoreFuncs.UI.text(textSurf, text, (255, 255, 255), (self.__centerX, self.__centerY), 25, center=True)
+        textSprite = UI.Text(textSurf, text, (255, 255, 255), (self.__centerX, self.__centerY), 25, center=True)
 
         # rendering a faded box under it to make it more visable
         sizeX, sizeY = textSprite.size
@@ -430,4 +433,76 @@ class TextTypingBox (TextBoxContainer):
     # gets the typing box
     def GetTypingBox(self) -> TypingBox:
         return self.typingBox
+
+
+
+# ---------------------------------------- Basic Renderers / General UI ----------------------------------------
+
+
+# renders text, moves based on window size
+class ButtonTextRenderer:
+    def __init__(self, dx: int, dy: int, size: int, text: str, color: typing.Tuple[int]=(55,165,55)) -> None:
+        self.dx = dx
+        self.dy = dy
+        self.size = size
+        self.text = text
+        self.color = color
+
+        # the changing in size
+        self.sizeOssolation = 0
+    
+    # redners the text
+    def Render(self, screen: pygame.Surface, events: Events.Events, dt: float, screenWidth: int, screenHeight: int) -> None:
+        # rendering the text
+        textSprite = UI.Text(screen, self.text, self.color, (screenWidth + self.dx, screenHeight + self.dy), self.size, center=True)
+
+        # rendering the circle thingy
+        left = screenWidth + self.dx+1
+        top  = screenHeight + self.dy
+        if textSprite.collidepoint(events.mouseX, events.mouseY):
+            # making it change sizes slowely
+            self.sizeOssolation += dt * 2
+            # rendering the circle
+            pygame.draw.circle(screen, (255, 255, 255), [left, top], 13 + math.cos(self.sizeOssolation) * 2, 2)
+        else:
+            # removing any size change
+            self.sizeOssolation = 0
+
+
+# ui (just text for now)
+class UI:
+    # rendering text with many options (transparecy, size, centering, color, font, ect...)
+    def Text(screen: object, text: str, color, pos, size: float, center: bool = False, font: str = 'Neon.ttf', trans: int = 255) -> pygame.Rect:
+        largeText = pygame.font.Font(font, size)
+        textSurface = largeText.render(text, True, color)
+        TextSurf, TextRect = textSurface, textSurface.get_rect()
+        if trans != 255:  # checking if the text is transparent
+            surf = pygame.Surface(TextRect.size)
+            if color == (0, 0, 0):  # making sure black text still works with transparecy
+                surf.fill((255, 255, 255))
+                surf.set_colorkey((255, 255, 255))
+            else:
+                surf.fill((0, 0, 0))
+                surf.set_colorkey((0, 0, 0))
+            surf.set_alpha(trans)
+            n_pos = pos
+            if center:  # checking if the text should be centered
+                pos = (TextRect.size[0] // 2, TextRect.size[1] // 2)
+            else:
+                pos = (0, 0)
+        else:
+            surf = screen
+        if center:  # checking if the text should be centered
+            TextRect.center = pos
+            sprite = surf.blit(TextSurf, TextRect)
+        else:
+            sprite = surf.blit(TextSurf, pos)
+        
+        if trans != 255:  # a bit more with transparecy
+            if center:
+                screen.blit(surf, (n_pos[0] - TextRect.size[0] // 2, n_pos[1] - TextRect.size[1] // 2))
+            else:
+                screen.blit(surf, n_pos)
+        return sprite
+
 
