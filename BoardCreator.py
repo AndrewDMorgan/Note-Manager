@@ -68,12 +68,27 @@ class BoardCreator:
         
         # adding the note
         def Add(self, text: str) -> None:
+            # adding a number at the end to make the note unique
+            num = 0
+            newText = text
+            while newText in self.__notes:
+                num += 1
+                newText = text + str(num)
+            
+            if num > 0:
+                text += str(num)
+
             # adding the note
             self.__notes[text] = {"SubNotes":[]}
 
-            # adding the box/note to the renderer
+            # getting the boxes
             boxes = NoteBoard.currentBoardManager.GetBoxes()
-            box = UI.TextBoxContainer(NoteBoard.RendererNote(195, 20 + (len(boxes)) * 50, 500, 40, text, NoteBoard.noteJson["NoteBoards"], len(boxes)), updateFunc=NoteBoard.NoteUpdateFunc)
+
+            # finding the lowest box
+            lowest = max([key.GetY() for key in boxes])
+
+            # creating and adding the box
+            box = UI.TextBoxContainer(NoteBoard.RendererNote(195, lowest + 50, 500, 40, text, NoteBoard.noteJson["NoteBoards"], len(boxes)), updateFunc=NoteBoard.NoteUpdateFunc)
             NoteBoard.currentBoardManager.AddBox(box)
 
 
