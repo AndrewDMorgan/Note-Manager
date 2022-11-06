@@ -65,7 +65,7 @@ while running:
     # updating the typingCreator and boardCreator
     BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
     BoardCreator.boardCreator.Update()
-    BoardCreator.newNoteButton.Update(events, screenWidth)
+    BoardCreator.newNoteButton.Update(events, BoardCreator.newNoteButton, screenWidth)
     
 
     # -------- Rendering Stuff --------

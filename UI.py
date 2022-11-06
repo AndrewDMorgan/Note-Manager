@@ -36,8 +36,12 @@ class Button:
         self.UpdateState(events)
 
         # checking if the button has been pressed
+        pressed = False
         if self.__state == self.State.Realeased:
-            self.__action(*args)  # calling the function assosiated with the pressing of the button
+            pressed = True
+        
+        # calling the update function
+        self.__action(pressed, *args)
 
     # updating the state of the button
     def UpdateState(self, events: Events.Events) -> None:

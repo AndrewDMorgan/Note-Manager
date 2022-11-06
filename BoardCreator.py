@@ -139,12 +139,12 @@ class BoardCreator:
 
 
 # update function for creating a new note
-def NewNoteUpdateFunc(events: Events.Events, button: UI.Button, screenWidth: int, *args) -> None:
+def NewNoteUpdateFunc(pressed: bool, button: UI.Button, screenWidth: int, *args) -> None:
     # adjusting the position of the button
     button.SetX(screenWidth - 15 - 21//2)
-    
+
     # making sure nothing else is using the typingCreator
-    if not typingCreator.GetActive():
+    if pressed and not typingCreator.GetActive():
         # getting the note boards
         boards = NoteBoard.noteJson["NoteBoards"]
         currentBoardNotes = boards[[key for key in boards][NoteBoard.currentBoard]]["Notes"]
