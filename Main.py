@@ -32,10 +32,6 @@ pygame.display.set_caption("Task Manager")
 screen = pygame.display.set_mode((screenWidth, screenHeight), pygame.RESIZABLE)
 
 
-# opening the save data for the noteboard
-noteBoards = NoteBoard.GetNoteBoards(NoteBoard.noteJson["NoteBoards"])
-
-
 # event stuff
 events = Events.Events()
 
@@ -49,7 +45,7 @@ running = True
 while running:
     # the start time of the frame
     start = time.time()
-    
+
     # getting the windows size for proper scalling/rendering
     screenWidth, screenHeight = pygame.display.get_surface().get_size()
 
@@ -63,13 +59,14 @@ while running:
     # -------- Updating Stuff --------
 
     # updating the TextBoxContainers
-    noteBoards.Update(events, noteBoards, NoteBoard.noteJson["NoteBoards"])
+    NoteBoard.noteBoards.Update(events, NoteBoard.noteBoards, NoteBoard.noteJson["NoteBoards"])
     NoteBoard.currentBoardManager.Update(events, NoteBoard.currentBoardManager)
 
     # updating the typingCreator and boardCreator
     BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
     BoardCreator.boardCreator.Update()
-
+    BoardCreator.newNoteButton.Update(events, screenWidth)
+    
 
     # -------- Rendering Stuff --------
 
@@ -80,11 +77,12 @@ while running:
     pygame.draw.rect(screen, (40, 40, 40), [0, 0, 195, screenHeight])
 
     # rendering all the TextBoxContainers
-    noteBoards.Render(screen, dt, screenWidth, screenHeight)
+    NoteBoard.noteBoards.Render(screen, dt, screenWidth, screenHeight)
     NoteBoard.currentBoardManager.Render(screen, dt, screenWidth, screenHeight, events)
 
     # rendering the typingCreator
     BoardCreator.typingCreator.Render(screen)
+    BoardCreator.newNoteButton.Render(screen, events, dt, screenWidth, 0)
 
     # updating the screen
     pygame.display.update()

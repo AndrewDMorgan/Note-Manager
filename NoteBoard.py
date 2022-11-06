@@ -1,4 +1,4 @@
-import Buttons, CoreFuncs, Events, BoardCreator
+import UI, CoreFuncs, Events, BoardCreator
 import typing, pygame, math
 
 
@@ -42,7 +42,7 @@ class Renderer:
 
         # rendering the box and the text
         pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3])
-        CoreFuncs.UI.text(screen, self.__text, textColor, (self.__x + 5, self.__y + 5), 20)
+        UI.UI.Text(screen, self.__text, textColor, (self.__x + 5, self.__y + 5), 20)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
@@ -106,7 +106,7 @@ class RendererNote (Renderer):
             heightChange = -4
 
             # rendering a + to add a sub note
-            plusSprite = CoreFuncs.UI.text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
+            plusSprite = UI.UI.Text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
 
             # rendering the sub notes
             notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
@@ -115,11 +115,11 @@ class RendererNote (Renderer):
             # looping through all the sub notes
             i = 0
             for subNote in subNotes:
-                CoreFuncs.UI.text(screen, f"    • {subNote}", (255, 175, 55), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
+                UI.UI.Text(screen, f"    • {subNote}", (255, 175, 55), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
         
         # renderering the button for the drop down menu
-        arrowSprite = CoreFuncs.UI.text(screen, char, (255, 55, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 25 - heightChange), 20)
+        arrowSprite = UI.UI.Text(screen, char, (255, 55, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY() - 25 - heightChange), 20)
 
         left = self.GetX() + self.GetSizeX() - 20
         top  = self.GetY() + self.GetSizeY() - 25
@@ -127,12 +127,12 @@ class RendererNote (Renderer):
             # making it change sizes slowely
             self.sizeOssolation += dt * 2
             # rendering the circle
-            pygame.draw.circle(screen, (255, 255, 255), [left + 6, top + 11], 10 + math.sin(self.sizeOssolation) * 2, 2)
+            pygame.draw.circle(screen, (255, 255, 255), [left + 6, top + 11], 10 + math.cos(self.sizeOssolation) * 2, 2)
         elif plusSprite != None and plusSprite.collidepoint(events.mouseX, events.mouseY):
             # making it change sizes slowely
             self.sizeOssolation += dt * 2
             # rendering the circle
-            pygame.draw.circle(screen, (255, 255, 255), [left + 7, top + 11 + 29], 10 + math.sin(self.sizeOssolation) * 2, 2)
+            pygame.draw.circle(screen, (255, 255, 255), [left + 7, top + 11 + 29], 10 + math.cos(self.sizeOssolation) * 2, 2)
         else:
             # removing any size change
             self.sizeOssolation = 0
@@ -240,7 +240,7 @@ def NoteBoardUndateFunc(boardId: int, events: Events, self: object, notes: typin
 
 
 # sets up the noteboard
-def GetNoteBoards(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
+def GetNoteBoards(noteBoards: typing.Dict) -> UI.TextBoxCollumnManager:
     # setting the current board
     global currentBoard, currentBoardManager
     currentBoardManager = GetBoard(noteBoards)
@@ -251,18 +251,18 @@ def GetNoteBoards(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # looping through all the note boards
     i = 0
     for board in noteBoards:
-        box = Buttons.TextBoxContainer(Renderer(10, 10 + i * 40, 175, 40, board), updateFunc=NoteBoardUndateFunc)
+        box = UI.TextBoxContainer(Renderer(10, 10 + i * 40, 175, 40, board), updateFunc=NoteBoardUndateFunc)
 
         # adding the box
         boxes.append(box)
         i += 1
     
     # returning the noteboard, locked x
-    return Buttons.TextBoxCollumnManager(boxes)
+    return UI.TextBoxCollumnManager(boxes)
 
 
 # getts the note objects from the given board
-def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
+def GetBoard(noteBoards: typing.Dict) -> UI.TextBoxCollumnManager:
     # getting the notes for the note board
     notes = noteBoards[[key for key in noteBoards][currentBoard]]["Notes"]
 
@@ -272,14 +272,14 @@ def GetBoard(noteBoards: typing.Dict) -> Buttons.TextBoxCollumnManager:
     # looping through all the note boards
     i = 0
     for note in notes:
-        box = Buttons.TextBoxContainer(RendererNote(195, 20 + i * 50, 500, 40, note, noteBoards, i), updateFunc=NoteUpdateFunc)
+        box = UI.TextBoxContainer(RendererNote(195, 20 + i * 50, 500, 40, note, noteBoards, i), updateFunc=NoteUpdateFunc)
 
         # adding the box
         boxes.append(box)
         i += 1
     
     # returning the noteboard, locked x
-    return Buttons.TextBoxCollumnManager(boxes)
+    return UI.TextBoxCollumnManager(boxes)
 
 
 
@@ -319,6 +319,8 @@ def AddSubNote(notesJson: typing.Dict, boardName: str, noteName: str, newSubNote
 # the active board
 currentBoard = 0
 
+# opening the save data for the noteboard and reading it
 noteJson = CoreFuncs.Json.LoadFile("save.json")
+noteBoards = GetNoteBoards(noteJson["NoteBoards"])
 
 

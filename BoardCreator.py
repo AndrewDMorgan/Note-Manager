@@ -1,4 +1,4 @@
-import Buttons, CoreFuncs, Events, NoteBoard
+import UI, CoreFuncs, Events, NoteBoard
 import pygame, typing, enum
 
 
@@ -9,7 +9,7 @@ import pygame, typing, enum
 class TypingCreator:
     def __init__(self, screenWidth: int, screenHeight: int) -> None:
         # the typing box
-        self.__typingBox = Buttons.TypingBox(screenWidth//2, screenHeight//2)
+        self.__typingBox = UI.TypingBox(screenWidth//2, screenHeight//2)
         self.__active = False  # the state of it, opened or closed
 
     # updates the typing box
@@ -51,7 +51,7 @@ class BoardCreator:
 
     # stores the subnotes and adds to them
     class SubNoteAdder:
-        def __init__(self, subNotes: typing.List[str], boxId: int, boardManager: Buttons.TextBoxCollumnManager) -> None:
+        def __init__(self, subNotes: typing.List[str], boxId: int, boardManager: UI.TextBoxCollumnManager) -> None:
             self.__boardManager = boardManager
             self.__subNotes = subNotes
             self.__boxId = boxId
@@ -64,13 +64,19 @@ class BoardCreator:
     # stores the notes and adds one
     class NotesAdder:
         def __init__(self, notes: typing.Dict) -> None:
-            self.notes = notes
+            self.__notes = notes
         
         # adding the note
         def Add(self, text: str) -> None:
             # adding the note
-            self.notes[text] = {"SubNotes":[]}
-    
+            self.__notes[text] = {"SubNotes":[]}
+
+            # adding the box/note to the renderer
+            boxes = NoteBoard.currentBoardManager.GetBoxes()
+            box = UI.TextBoxContainer(NoteBoard.RendererNote(195, 20 + (len(boxes)) * 50, 500, 40, text, NoteBoard.noteJson["NoteBoards"], len(boxes)), updateFunc=NoteBoard.NoteUpdateFunc)
+            NoteBoard.currentBoardManager.AddBox(box)
+
+
     # stores and adds a board
     class BoardAdder:
         def __init__(self, boards: typing.Dict) -> None:
@@ -114,10 +120,29 @@ class BoardCreator:
 
 
 
+# ---------------------------------------- Upate Functions ----------------------------------------
+
+
+# update function for creating a new note
+def NewNoteUpdateFunc(events: Events.Events, *args) -> None:
+    # making sure nothing else is using the typingCreator
+    if not typingCreator.GetActive():
+        # getting the note boards
+        boards = NoteBoard.noteJson["NoteBoards"]
+        currentBoardNotes = boards[[key for key in boards][NoteBoard.currentBoard]]["Notes"]
+        # adding a new subnote
+        boardCreator.AddAdder(BoardCreator.NotesAdder(currentBoardNotes), boardCreator.States.NOTE)
+
+
+
 # ---------------------------------------- Globals ----------------------------------------
 
 
 # setting up the typing creator
 typingCreator = TypingCreator(1200, 750)
 boardCreator = BoardCreator()
+
+
+# buttons, make it so the new tile is rendered on the current board without having to refreshing it
+newNoteButton = UI.Button(1200-15-21//2, -1, 45, 45, NewNoteUpdateFunc, UI.ButtonTextRenderer(-15, +20, 45, "+"))
 
