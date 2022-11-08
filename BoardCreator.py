@@ -85,7 +85,27 @@ class BoardCreator:
             boxes = NoteBoard.currentBoardManager.GetBoxes()
 
             # finding the lowest box
-            lowest = max([key.GetY() for key in boxes])
+            if len(boxes) == 0:
+                lowest = -30
+            else:
+                heights = [key.GetY() for key in boxes]
+                lowest = max(heights)
+                
+                # checking if this box is dropped
+                boxIndex = heights.index(lowest)
+                box = boxes[boxIndex]
+                if box.GetRenderer().GetDropped():
+                    # getting the sub-notes
+                    notes = NoteBoard.noteJson["NoteBoards"][[key for key in NoteBoard.noteJson["NoteBoards"]][NoteBoard.currentBoard]]["Notes"]
+                    subNotes = notes[[key for key in notes][NoteBoard.currentBoardManager.GetIndex(boxIndex)]]["SubNotes"]
+                    
+                    # accounting for the size
+                    size = len(subNotes) * 20 + 5
+                    if size == 5:
+                        size = 0
+                    
+                    # moving the new box bellow the sub notes
+                    lowest += size
 
             # creating and adding the box
             box = UI.TextBoxContainer(NoteBoard.RendererNote(195, lowest + 50, 500, 40, text, NoteBoard.noteJson["NoteBoards"], len(boxes)), updateFunc=NoteBoard.NoteUpdateFunc)
@@ -101,19 +121,22 @@ class BoardCreator:
         def Add(self, text: str) -> None:
             # adding the board
             self.boards[text] = {"Notes":{}}
-            # setting the current board to the new board
-            NoteBoard.currentBoard = [key for key in self.boards].index(self.boards)
+            
+            # setting up the new board
+            NoteBoard.currentBoard = [key for key in self.boards].index(text)
+            NoteBoard.noteBoards = NoteBoard.GetNoteBoards(NoteBoard.noteJson["NoteBoards"])
 
-    # the state of what is going on
+
+    # ---------------- Main Class Stuff ----------------
+
+        # the state of what is going on
     class States (enum.Enum):
         NONE = 0
         SUBNOTE = 1
         NOTE = 2
         BOARD = 3
 
-
-    # ---------------- Main Class Stuff ----------------
-
+    # the constructor
     def __init__(self) -> None:
         self.__state = self.States.NONE
     
@@ -152,6 +175,14 @@ def NewNoteUpdateFunc(pressed: bool, button: UI.Button, screenWidth: int, *args)
         boardCreator.AddAdder(BoardCreator.NotesAdder(currentBoardNotes), boardCreator.States.NOTE)
 
 
+# update function for creating a new note
+def NewBoardUpdateFunc(pressed: bool, *args) -> None:
+    # making sure nothing else is using the typingCreator
+    if pressed and not typingCreator.GetActive():
+        # adding a new subnote
+        boardCreator.AddAdder(BoardCreator.BoardAdder(NoteBoard.noteJson["NoteBoards"]), boardCreator.States.BOARD)
+
+
 
 # ---------------------------------------- Globals ----------------------------------------
 
@@ -163,4 +194,5 @@ boardCreator = BoardCreator()
 
 # buttons, make it so the new tile is rendered on the current board without having to refreshing it
 newNoteButton = UI.Button(1200-15-21//2, -1, 45, 45, NewNoteUpdateFunc, UI.ButtonTextRenderer(-15, +20, 45, "+"))
+newBoardButton = UI.Button(180-21//2, 26-21//2, 45, 45, NewBoardUpdateFunc, UI.ButtonTextRenderer(180, 26, 45, "+"))
 

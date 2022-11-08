@@ -41,7 +41,7 @@ class Renderer:
             textColor = fadedText
 
         # rendering the box and the text
-        pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3])
+        pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3], border_radius=1)
         UI.UI.Text(screen, self.__text, textColor, (self.__x + 5, self.__y + 5), 20)
     
     # getters and setters/adders for position
@@ -317,6 +317,7 @@ def AddSubNote(notesJson: typing.Dict, boardName: str, noteName: str, newSubNote
 
 
 # the active board
+currentBoardManager = None
 currentBoard = 0
 
 # opening the save data for the noteboard and reading it

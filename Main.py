@@ -43,6 +43,9 @@ running = True
 
 # the main loop running everything
 while running:
+    # make it so it only occasionally happens to improve preformace
+    CoreFuncs.Json.WriteFile("save.json", NoteBoard.noteJson)
+
     # the start time of the frame
     start = time.time()
 
@@ -66,6 +69,7 @@ while running:
     BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
     BoardCreator.boardCreator.Update()
     BoardCreator.newNoteButton.Update(events, BoardCreator.newNoteButton, screenWidth)
+    BoardCreator.newBoardButton.Update(events)
     
 
     # -------- Rendering Stuff --------
@@ -83,6 +87,7 @@ while running:
     # rendering the typingCreator
     BoardCreator.typingCreator.Render(screen)
     BoardCreator.newNoteButton.Render(screen, events, dt, screenWidth, 0)
+    BoardCreator.newBoardButton.Render(screen, events, dt, 0, 0)
 
     # updating the screen
     pygame.display.update()
