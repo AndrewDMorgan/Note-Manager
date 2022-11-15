@@ -193,6 +193,6 @@ boardCreator = BoardCreator()
 
 
 # buttons, make it so the new tile is rendered on the current board without having to refreshing it
-newNoteButton = UI.Button(1200-15-21//2, -1, 45, 45, NewNoteUpdateFunc, UI.ButtonTextRenderer(-15, +20, 45, "+"))
-newBoardButton = UI.Button(180-21//2, 26-21//2, 45, 45, NewBoardUpdateFunc, UI.ButtonTextRenderer(180, 26, 45, "+"))
+newNoteButton = UI.Button(1200-15-21//2, -1, 45, 45, NewNoteUpdateFunc, UI.ButtonTextRenderer(-15, 20, 45, "+"))
+newBoardButton = UI.Button(180-21//2, 26-21//2, 45//2, 45//2, NewBoardUpdateFunc, UI.ButtonTextRenderer(180, 26, 45, "+"))
 

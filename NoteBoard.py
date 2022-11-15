@@ -42,7 +42,8 @@ class Renderer:
 
         # rendering the box and the text
         pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3], border_radius=1)
-        UI.UI.Text(screen, self.__text, textColor, (self.__x + 5, self.__y + 5), 20)
+        pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.__y + 15), 8, 2)
+        UI.UI.Text(screen, self.__text, textColor, (self.__x + 30, self.__y + 5), 20)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
@@ -115,7 +116,8 @@ class RendererNote (Renderer):
             # looping through all the sub notes
             i = 0
             for subNote in subNotes:
-                UI.UI.Text(screen, f"    • {subNote}", (255, 175, 55), (self.GetX() + 5, self.GetY() + 45 + i * 20), 15)
+                pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 45 + i * 20 + 9), 6, 2)
+                UI.UI.Text(screen, f"• {subNote}", (255, 175, 55), (self.GetX() + 40, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
         
         # renderering the button for the drop down menu
