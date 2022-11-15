@@ -14,19 +14,17 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
 ## Planned Features
  * Calander/timed events
  * Catagories within note boards
- * Completing tasks
+ * Completing tasks (working on rn)
  * Settings to customize the application
- * Saving and auto saving
- * Different sorting modes for calander events
- * Different views, calander view, note view, ect... with different ordering/sorting options
- * Light mode theme and other settings
- * So many other features I haven't though of hopefully
+ * Saving and auto saving (sort of added but needs a lot of improvment for preformace)
+ * Different sorting modes for calander events and the saving of the sorting in the main note boards
+ * Different views, calander view, note view, ect... with different ordering/sorting options (similar to others)
+ * Gopefully so many other features I haven't though of
+ * A way to delete note boards
 
 ## Recently Updated
-  * Added note board creation
-  * Added basic saving (highly unpreformant, going to be redone soon)
-  * Fixed a bug
+  * Added a useless button that is rendered. Will be used to complete notes/sub notes
 
 ## Bugs
-* Fixed a bug where when the last set of notes had the sub-notes dropped, the new note would be created ontop of the sub-notes
+* Fixed a bug where the new note board button's hit box was twice as large as it was supposed to be
 * No problematic bugs so far, knock on wood
