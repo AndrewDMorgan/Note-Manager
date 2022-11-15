@@ -20,11 +20,11 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * Different sorting modes for calander events and the saving of the sorting in the main note boards
  * Different views, calander view, note view, ect... with different ordering/sorting options (similar to others)
  * Gopefully so many other features I haven't though of
- * A way to delete note boards
 
 ## Recently Updated
   * Added a useless button that is rendered. Will be used to complete notes/sub notes
 
 ## Bugs
 * Fixed a bug where the new note board button's hit box was twice as large as it was supposed to be
+* Fixed the bug where the task completion buttons were rendering on the note boards by making it a feature, this is how boards will be completed/deleted
 * No problematic bugs so far, knock on wood
