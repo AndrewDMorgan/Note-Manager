@@ -42,7 +42,7 @@ class Renderer:
 
         # rendering the box and the text
         pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3], border_radius=1)
-        pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.__y + 15), 8, 2)
+        pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.GetY() + 15), 8, 2)
         UI.UI.Text(screen, self.__text, textColor, (self.__x + 30, self.__y + 5), 20)
     
     # getters and setters/adders for position
@@ -73,6 +73,10 @@ class Renderer:
     def Moved(self, *args) -> None:
         pass  # doing nothing
 
+    # removing the thing attached
+    def Del(self) -> None:
+        pass
+
 
 # for rendering notes, just adds rendering stuff
 class RendererNote (Renderer):
@@ -90,12 +94,42 @@ class RendererNote (Renderer):
 
         # the changing in size
         self.sizeOssolation = 0
+
+        # the rate of fading/the fade animation
+        self.__fadeRate = 1  # no fading
+        self.__faded = 1  # the amount of fading
+
+        # the fade rates and fading amount for sub-notes
+        self.__subFadeRate = []
+        self.__subFaded = []
     
     # the renderer
     def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, events: Events, *args) -> None:
         # rendering the general stuff
         super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255))
         
+        # getting the subnotes
+        notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
+        subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
+        
+        # updating the subnote fading incase a new one was added
+        while len(self.__subFadeRate) != len(subNotes):
+            self.__subFadeRate.append(1)
+            self.__subFaded.append(1)
+
+        # rendering the check mark
+        checkScalar = min((1 - self.__faded) + 0.5, 1)
+        checkSize = round(checkScalar * 15)
+        if checkSize >= 1:
+            UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 17, self.GetY() + 15), checkSize, center=True, trans=255*checkScalar)
+
+        # updating the fading
+        self.__faded *= 1 - ((1 - self.__fadeRate) * dt * 60)
+        
+        # updating the fading for the subnotes
+        for subI in range(len(self.__subFadeRate)):
+            self.__subFaded[subI] *= 1 - ((1 - self.__subFadeRate[subI]) * dt * 60)
+
         # the change in height to account for the height differece between v and ^
         heightChange = 0
         plusSprite = None
@@ -109,14 +143,17 @@ class RendererNote (Renderer):
             # rendering a + to add a sub note
             plusSprite = UI.UI.Text(screen, f"+", (55, 165, 55), (self.GetX() + self.GetSizeX() - 20, self.GetY() + self.GetSizeY()), 30)
 
-            # rendering the sub notes
-            notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
-            subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
-
             # looping through all the sub notes
             i = 0
             for subNote in subNotes:
-                pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 45 + i * 20 + 9), 6, 2)
+                # rendering the check (when completing sub-notes)
+                checkScalar = min((1 - self.__subFaded[i]) + 0.5, 1)
+                checkSize = round(checkScalar * 15)
+                if checkSize >= 1:
+                    UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 29, self.GetY() + 53 + i * 20), checkSize, center=True, trans=255*checkScalar)
+
+                # rendering the subnotes
+                pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 54 + i * 20), 6, 2)
                 UI.UI.Text(screen, f"• {subNote}", (255, 175, 55), (self.GetX() + 40, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
         
@@ -163,6 +200,37 @@ class RendererNote (Renderer):
     def SetDropped(self, dropped: bool) -> None:
         self.__droppedDown = dropped
 
+        # getting the subnotes
+        notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
+        subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
+
+        # adding their fading value things
+        self.__subFaded = []
+        self.__subFadeRate = []
+        for i in range(len(subNotes)):
+            self.__subFadeRate.append(1)
+            self.__subFaded.append(1)
+
+    # removing the note
+    def Del(self) -> None:
+        # making it so the note fades in some manner (maybe a movement or something)
+        self.__fadeRate = 0.85
+    def DelSubNote(self, i: int) -> None:
+        self.__subFadeRate[i] = 0.85
+    
+    # gets the fading amount
+    def GetFade(self) -> float:
+        return self.__faded
+    def GetSubFades(self) -> typing.List[float]:
+        return self.__subFaded
+    def RemoveSubFading(self, i: int) -> None:
+        del self.__subFadeRate[i]
+        del self.__subFaded[i]
+    
+    # adds to the note id
+    def AddNoteId(self, dif: int) -> None:
+        self.__noteId += dif
+
 
 
 # ---------------------------------------- Update Functions ----------------------------------------
@@ -179,6 +247,11 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
     # getting the actual index
     realIndex = self.GetIndex(boxId)
     
+    # getting the notes and sub notes
+    notes = noteJson["NoteBoards"][[key for key in noteJson["NoteBoards"]][currentBoard]]["Notes"]
+    note = notes[[key for key in notes][boxId]]
+    subNotes = note["SubNotes"]
+
     # checking if the box was clicked
     if events.mouseDown:
         # the objects position
@@ -192,10 +265,9 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
         collisionY = CoreFuncs.Range(events.mouseY, colTop, colTop + 22)
         collisionY2 = CoreFuncs.Range(events.mouseY, colTop + 25, colTop + 50)  # collision for new sub note
 
-        # getting the notes and sub notes
-        notes = noteJson["NoteBoards"][[key for key in noteJson["NoteBoards"]][currentBoard]]["Notes"]
-        note = notes[[key for key in notes][boxId]]
-        subNotes = note["SubNotes"]
+        #pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.__y + 15), 8, 2)
+        completionCollisionX = CoreFuncs.Range(events.mouseX, obX + 9, obX + 25)
+        completionCollisionY = CoreFuncs.Range(events.mouseY, obY + 7, obY + 23)
 
         # checking if the dropdown button was pressed
         if collisionX and collisionY:
@@ -223,6 +295,62 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
             if not BoardCreator.typingCreator.GetActive():
                 # adding a new subnote
                 BoardCreator.boardCreator.AddAdder(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self), BoardCreator.boardCreator.States.SUBNOTE)
+        # checking if the completion button was pressed
+        elif completionCollisionX and completionCollisionY:
+            renderer.Del()  # removing the note
+        else:
+            # going through all the sub notes and checking if any of them have been completed
+            for i in range(len(subNotes)):
+                #pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 45 + i * 20 + 9), 6, 2)
+                centerX = obX + 29
+                centerY = obY + 54 + i * 20
+                colX = CoreFuncs.Range(events.mouseX, centerX - 6, centerX + 6)
+                colY = CoreFuncs.Range(events.mouseY, centerY - 6, centerY + 6)
+                if colX and colY:
+                    # adding the note to the fading notes
+                    renderer.DelSubNote(i)
+    
+    # removing the note if the fade animation is complete
+    fadeAmount = renderer.GetFade()
+    if fadeAmount <= 0.05:
+        # getting the size of the drop down
+        size = len(subNotes) * 20 + 5
+        if size == 5 or not renderer.GetDropped():
+            size = 0
+
+        size += 50  # the size of a note
+
+        # moving the boxes to the correct positions
+        self.ShiftBoxesY(realIndex, -size)
+
+        # swapping the dropped state
+        renderer.SetDropped(False)
+
+        # removing the note from the json
+        del notes[[key for key in notes][boxId]]
+
+        # removing the note from the board manager
+        self.RemoveBox(boxId)
+    
+    # checking if any subnotes need removing
+    i = 0
+    for subFade in renderer.GetSubFades():
+        # checking if the subnote has fully faded
+        if subFade <= 0.05:
+            # removing the subnote from the json
+            del subNotes[i]
+
+            # shifting the boxes to match it
+            self.ShiftBoxesY(realIndex, -20)
+            if len(subNotes) == 0:
+                self.ShiftBoxesY(realIndex, -5)
+            
+            # updating the fade rates and fading of the subnotes
+            renderer.RemoveSubFading(i)
+
+            # correcting the index for the removed subnote
+            i -= 1
+        i += 1
 
 
 # the update function for note boards, take any number of args but only up to my is used

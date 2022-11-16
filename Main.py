@@ -21,6 +21,11 @@ Objectives:
     * Add saving/auto saving
     * Add the other things I have on the github page
 
+Stuff for note checking off:
+
+I'm thinking the renderer checks if the note stille exists, if it doesn't than it slowely fades. If completely faded, it deletes its self from the button list and dictionary and moves all buttons based on this deletion
+Maybe a satisfying check mark & animation could appear
+
 """
 
 
@@ -67,7 +72,7 @@ while running:
 
     # updating the typingCreator and boardCreator
     BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
-    BoardCreator.boardCreator.Update()
+    BoardCreator.boardCreator.Update(events)
     BoardCreator.newNoteButton.Update(events, BoardCreator.newNoteButton, screenWidth)
     BoardCreator.newBoardButton.Update(events)
     

@@ -148,7 +148,13 @@ class BoardCreator:
         self.__adder = adder
     
     # updating the boardCreator
-    def Update(self) -> None:
+    def Update(self, events: Events) -> None:
+        # checking if the tpying box was left
+        if typingCreator.GetActive() and "escape" in events.events:
+            # making the typing box unactive
+            self.__state = self.States.NONE
+            typingCreator.SetActive(False)
+
         # checking if the typing was completed if something is also being added
         if self.__state != self.States.NONE and not typingCreator.GetActive():
             # adding the item
