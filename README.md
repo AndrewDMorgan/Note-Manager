@@ -23,8 +23,9 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * Hopefully so many other features I haven't though of
 
 ## Recently Updated
-  * Added functionality to the note and sub-note completion buttons
-  * You can press escape to stop typing (when creating a note/sub-note/note board)
+ * Added functionality to the note and sub-note completion buttons
+ * You can press escape to stop typing (when creating a note/sub-note/note board)
 
 ## Bugs
-* No problematic bugs so far, knock on wood
+ * Fixed a bug to do with moving and creating notes and then completing them, it was mixing up the id's and calculating stuff wrong
+ * No problematic bugs so far, knock on wood
