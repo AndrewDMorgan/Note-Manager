@@ -107,7 +107,7 @@ class RendererNote (Renderer):
     def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, events: Events, *args) -> None:
         # rendering the general stuff
         super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255))
-        
+
         # getting the subnotes
         notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
         subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
@@ -330,7 +330,7 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
         del notes[[key for key in notes][boxId]]
 
         # removing the note from the board manager
-        self.RemoveBox(boxId)
+        self.RemoveBox(realIndex)
     
     # checking if any subnotes need removing
     i = 0

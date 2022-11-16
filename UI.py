@@ -203,6 +203,27 @@ class TextBoxManager:
         self.__boxes.append(box)
         self.__indexes.append(len(self.__boxes) - 1)
     
+    # removing a box
+    def RemoveBox(self, id: int) -> None:
+        # removing the box and index
+        breakPoint = self.__indexes[id]
+
+        del self.__boxes[id]
+        del self.__indexes[id]
+
+        # checking if any boxes are left
+        if len(self.__boxes) > 0:
+            # getting the lowest index after the value removed
+            minAft = max(self.__indexes)
+            for i in range(id, len(self.__indexes)):
+                minAft = min(self.__indexes[i], minAft)
+            
+            # adjusting the values
+            dif = max(minAft - breakPoint, 0)
+            for i in range(id, len(self.__indexes)):
+                self.__indexes[i] -= dif
+                self.__boxes[i].GetRenderer().AddNoteId(-dif)  # updating the indexes stored in the boxes
+
     # getting and setting the indexes
     def GetIndexes(self) -> typing.List[int]:
         return self.__indexes
