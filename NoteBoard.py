@@ -120,7 +120,7 @@ class RendererNote (Renderer):
         # rendering the check mark
         checkScalar = min((1 - self.__faded) + 0.5, 1)
         checkSize = round(checkScalar * 15)
-        if checkSize >= 1:
+        if self.__faded < 1 and checkSize >= 1:
             UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 17, self.GetY() + 15), checkSize, center=True, trans=255*checkScalar)
 
         # updating the fading
@@ -149,12 +149,12 @@ class RendererNote (Renderer):
                 # rendering the check (when completing sub-notes)
                 checkScalar = min((1 - self.__subFaded[i]) + 0.5, 1)
                 checkSize = round(checkScalar * 15)
-                if checkSize >= 1:
+                if self.__subFaded[i] < 1 and checkSize >= 1:
                     UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 29, self.GetY() + 53 + i * 20), checkSize, center=True, trans=255*checkScalar)
 
                 # rendering the subnotes
                 pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 54 + i * 20), 6, 2)
-                UI.UI.Text(screen, f"• {subNote}", (255, 175, 55), (self.GetX() + 40, self.GetY() + 45 + i * 20), 15)
+                UI.UI.Text(screen, f"{subNote}", (255, 175, 55), (self.GetX() + 40, self.GetY() + 45 + i * 20), 15)
                 i += 1   # incrementing i
         
         # renderering the button for the drop down menu
