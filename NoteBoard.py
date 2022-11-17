@@ -348,6 +348,10 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
             # updating the fade rates and fading of the subnotes
             renderer.RemoveSubFading(i)
 
+            # checking if the note should be un-dropped down
+            if len(subNotes) == 0:
+                renderer.SetDropped(False)
+
             # correcting the index for the removed subnote
             i -= 1
         i += 1
