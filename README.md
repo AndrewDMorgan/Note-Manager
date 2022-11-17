@@ -27,5 +27,5 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * You can press escape to stop typing (when creating a note/sub-note/note board)
 
 ## Bugs
- * Fixed a bug to do with moving and creating notes and then completing them, it was mixing up the id's and calculating stuff wrong
+ * Fixed a sort of bug, now when all sub-notes are completed the dropdown menu will go back up
  * No problematic bugs so far, knock on wood
