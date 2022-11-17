@@ -25,7 +25,9 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
 ## Recently Updated
  * Added functionality to the note and sub-note completion buttons
  * You can press escape to stop typing (when creating a note/sub-note/note board)
+ * Removed the • before sub-notes sense the completion button is there now
 
 ## Bugs
  * Fixed a sort of bug, now when all sub-notes are completed the dropdown menu will go back up
+ * Fixed a bug where the completion check marks would render even when not completing a task/sub-note
  * No problematic bugs so far, knock on wood
