@@ -63,9 +63,9 @@ while running:
     # updating the keyboard events and the running state of the application
     running = events.UpdateEvents()
 
-
+    
     # -------- Updating Stuff --------
-
+    
     # updating the TextBoxContainers
     NoteBoard.noteBoards.Update(events, NoteBoard.noteBoards, NoteBoard.noteJson["NoteBoards"])
     NoteBoard.currentBoardManager.Update(events, NoteBoard.currentBoardManager)
@@ -73,9 +73,12 @@ while running:
     # updating the typingCreator and boardCreator
     BoardCreator.typingCreator.Update(events, dt, screenWidth, screenHeight)
     BoardCreator.boardCreator.Update(events)
-    BoardCreator.newNoteButton.Update(events, BoardCreator.newNoteButton, screenWidth)
     BoardCreator.newBoardButton.Update(events)
     
+    # making sure a board is selected
+    if NoteBoard.currentBoard >= 0:
+        BoardCreator.newNoteButton.Update(events, BoardCreator.newNoteButton, screenWidth)
+
 
     # -------- Rendering Stuff --------
 
@@ -91,8 +94,11 @@ while running:
 
     # rendering the typingCreator
     BoardCreator.typingCreator.Render(screen)
-    BoardCreator.newNoteButton.Render(screen, events, dt, screenWidth, 0)
     BoardCreator.newBoardButton.Render(screen, events, dt, 0, 0)
+
+    # making sure a board is selected
+    if NoteBoard.currentBoard >= 0:
+        BoardCreator.newNoteButton.Render(screen, events, dt, screenWidth, 0)
 
     # updating the screen
     pygame.display.update()

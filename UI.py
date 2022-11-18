@@ -222,8 +222,8 @@ class TextBoxManager:
             dif = max(minAft - breakPoint, 0)
             for i in range(id, len(self.__indexes)):
                 self.__indexes[i] -= dif
-                self.__boxes[i].GetRenderer().AddNoteId(-dif)  # updating the indexes stored in the boxes
-
+                self.__boxes[i].GetRenderer().AddElementId(-dif)  # updating the indexes stored in the boxes
+    
     # getting and setting the indexes
     def GetIndexes(self) -> typing.List[int]:
         return self.__indexes
@@ -338,6 +338,17 @@ class TextBoxCollumnManager (TextBoxManager):
         # removing all held boxes once the mouse is no longer being pressed
         if not events.mouseHeld:
             self.__heldI = -1
+    
+    # removing a box
+    def RemoveBox(self, id: int) -> None:
+        # checking if the held id should be shifted
+        if id < self.__heldI:
+            # shifting the held id
+            self.__heldI -= 1
+            print("moved")
+
+        # removing the box
+        super().RemoveBox(id)
 
 
 

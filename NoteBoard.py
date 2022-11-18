@@ -17,8 +17,12 @@ class Renderer:
         self.__nx = self.__x
         self.__ny = self.__y
 
+        # the rate of fading/the fade animation
+        self.__fadeRate = 1  # no fading
+        self.__faded = 1  # the amount of fading
+
     # rendering the box
-    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, fadedText: typing.Tuple[int] = (200, 200, 200), *args) -> None:
+    def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, fadedText: typing.Tuple[int] = (200, 200, 200), origonal: bool=True, *args) -> None:
         # the difference between the new and old x/y
         dx = self.__nx - self.__x
         dy = self.__ny - self.__y
@@ -44,6 +48,15 @@ class Renderer:
         pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3], border_radius=1)
         pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.GetY() + 15), 8, 2)
         UI.UI.Text(screen, self.__text, textColor, (self.__x + 30, self.__y + 5), 20)
+
+        # updating the fading
+        self.__faded *= 1 - ((1 - self.__fadeRate) * dt * 60)
+
+        # rendering the check mark
+        checkScalar = min((1 - self.__faded) + 0.5, 1)
+        checkSize = round(checkScalar * 15)
+        if self.__faded < 1 and checkSize >= 1:
+            UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 17, self.GetY() + 15), checkSize, center=True, trans=255*checkScalar)
     
     # getters and setters/adders for position
     def GetX(self) -> int:
@@ -73,8 +86,16 @@ class Renderer:
     def Moved(self, *args) -> None:
         pass  # doing nothing
 
-    # removing the thing attached
+    # removing the note
     def Del(self) -> None:
+        # making it so the note fades in some manner (maybe a movement or something)
+        self.__fadeRate = 0.85
+    
+    # gets the fading amount
+    def GetFade(self) -> float:
+        return self.__faded
+    # adds to the note id
+    def AddElementId(self, dif: int) -> None:
         pass
 
 
@@ -95,10 +116,6 @@ class RendererNote (Renderer):
         # the changing in size
         self.sizeOssolation = 0
 
-        # the rate of fading/the fade animation
-        self.__fadeRate = 1  # no fading
-        self.__faded = 1  # the amount of fading
-
         # the fade rates and fading amount for sub-notes
         self.__subFadeRate = []
         self.__subFaded = []
@@ -106,7 +123,7 @@ class RendererNote (Renderer):
     # the renderer
     def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, events: Events, *args) -> None:
         # rendering the general stuff
-        super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255))
+        super().Render(id, screen, dt, screenWidth, screenHeight, fadedText=(255, 255, 255), origonal=False)
 
         # getting the subnotes
         notes = self.__noteJson[[key for key in self.__noteJson][currentBoard]]["Notes"]
@@ -116,15 +133,6 @@ class RendererNote (Renderer):
         while len(self.__subFadeRate) != len(subNotes):
             self.__subFadeRate.append(1)
             self.__subFaded.append(1)
-
-        # rendering the check mark
-        checkScalar = min((1 - self.__faded) + 0.5, 1)
-        checkSize = round(checkScalar * 15)
-        if self.__faded < 1 and checkSize >= 1:
-            UI.UI.Text(screen, "√", (55, 200, 55), (self.GetX() + 17, self.GetY() + 15), checkSize, center=True, trans=255*checkScalar)
-
-        # updating the fading
-        self.__faded *= 1 - ((1 - self.__fadeRate) * dt * 60)
         
         # updating the fading for the subnotes
         for subI in range(len(self.__subFadeRate)):
@@ -212,15 +220,10 @@ class RendererNote (Renderer):
             self.__subFaded.append(1)
 
     # removing the note
-    def Del(self) -> None:
-        # making it so the note fades in some manner (maybe a movement or something)
-        self.__fadeRate = 0.85
     def DelSubNote(self, i: int) -> None:
         self.__subFadeRate[i] = 0.85
     
-    # gets the fading amount
-    def GetFade(self) -> float:
-        return self.__faded
+    # gets the fading amount and removes it for the sub-notes
     def GetSubFades(self) -> typing.List[float]:
         return self.__subFaded
     def RemoveSubFading(self, i: int) -> None:
@@ -228,7 +231,7 @@ class RendererNote (Renderer):
         del self.__subFaded[i]
     
     # adds to the note id
-    def AddNoteId(self, dif: int) -> None:
+    def AddElementId(self, dif: int) -> None:
         self.__noteId += dif
 
 
@@ -361,12 +364,49 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
 def NoteBoardUndateFunc(boardId: int, events: Events, self: object, notes: typing.Dict, *args) -> None:
     global currentBoard, currentBoardManager
 
+    # getting the box
+    box = self.GetBox(boardId)
+
+    # the renderer
+    renderer = box.GetRenderer()
+
+    # getting the actual index
+    realIndex = self.GetIndex(boardId)
+
     # checking if the board was messed with
-    if events.mouseDown and self.GetBox(boardId).CheckCollision(events.mouseX, events.mouseY):
-        # setting the active board to this one
-        currentBoard = boardId
-        # updating the board
-        currentBoardManager = GetBoard(notes)
+    if events.mouseDown:
+        # the objects position
+        obX = box.GetX()
+        obY = box.GetY()
+
+        #pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.__y + 15), 8, 2)
+        completionCollisionX = CoreFuncs.Range(events.mouseX, obX + 9, obX + 25)
+        completionCollisionY = CoreFuncs.Range(events.mouseY, obY + 7, obY + 23)
+
+        if completionCollisionX and completionCollisionY:
+            renderer.Del()  # removing the note
+        elif self.GetBox(boardId).CheckCollision(events.mouseX, events.mouseY):
+            # setting the active board to this one
+            currentBoard = boardId
+            # updating the board
+            currentBoardManager = GetBoard(notes)
+
+    # removing the note if the fade animation is complete
+    fadeAmount = renderer.GetFade()
+    if fadeAmount <= 0.05:
+        # moving the boxes to the correct positions
+        self.ShiftBoxesY(realIndex, -40)
+
+        # removing the box
+        self.RemoveBox(realIndex)
+
+        # removing the note board from the json
+        boards = noteJson["NoteBoards"]
+        del boards[[board for board in boards][boardId]]
+
+        # updating the note boards
+        currentBoard = 0
+        GetNoteBoards(noteJson["NoteBoards"])
 
 
 
@@ -377,6 +417,7 @@ def NoteBoardUndateFunc(boardId: int, events: Events, self: object, notes: typin
 def GetNoteBoards(noteBoards: typing.Dict) -> UI.TextBoxCollumnManager:
     # setting the current board
     global currentBoard, currentBoardManager
+
     currentBoardManager = GetBoard(noteBoards)
     
     # the note boards
@@ -397,8 +438,13 @@ def GetNoteBoards(noteBoards: typing.Dict) -> UI.TextBoxCollumnManager:
 
 # getts the note objects from the given board
 def GetBoard(noteBoards: typing.Dict) -> UI.TextBoxCollumnManager:
-    # getting the notes for the note board
-    notes = noteBoards[[key for key in noteBoards][currentBoard]]["Notes"]
+    global currentBoard
+    try:
+        # getting the notes for the note board
+        notes = noteBoards[[key for key in noteBoards][currentBoard]]["Notes"]
+    except IndexError:
+        currentBoard = -1
+        return UI.TextBoxCollumnManager([])
 
     # the note boards
     boxes = []
