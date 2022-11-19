@@ -31,3 +31,6 @@ A basic task manager I'm working on in my free time. I'm trying to create a clea
  * When completed multiple tasks/boards the indexes get messed up. Half of the bug was fixed, the part relating to the held index
  * (Fixed) When dropping a bunch of sub-note menus, the notes begin jumping around when sliding to their new positions
  * No other problematic bugs so far, knock on wood
+ 
+ 
+ testing...
