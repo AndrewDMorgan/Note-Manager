@@ -1,5 +1,5 @@
 # Note-Manager
-A basic task manager I'm working on in my free time. I'm trying to create a clean and expandable system that is highly functional. My goal is to create a fully functional task manager I can use in my daily life. I'm also wanting to improve my skills in making UI and create a nice, clean, understandable UI. I I may try to port it to android after completion but probably not.
+A basic task manager I'm working on in my free time. I'm trying to create a clean and expandable system that is highly functional. My goal is to create a fully functional task manager I can use in my daily life. I'm also wanting to improve my skills in making UI and create a nice, clean, understandable UI. I I am looking into a port for mobile and all systems (using kivy) although lots more testing and development needs to go into it.
 
 ## (Fairly Old Screenshot) Much more information bellow
 
