@@ -1,4 +1,4 @@
-import json, pygame
+import json
 
 
 # ---------------------------------------- Data Loading/Parsing ----------------------------------------
@@ -31,4 +31,10 @@ def Range(v: int, l: int, r: int) -> bool:
 # linear interpalation
 def Lerp(l: int, r: int, m: int) -> float:
     return l * (1 - m) + r * m
+
+
+# clamps a value between two bounds
+def Clamp(v: float, l: float, r: float) -> int:
+    return min(max(v, l), r)
+
 

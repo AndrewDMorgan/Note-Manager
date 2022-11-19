@@ -23,19 +23,9 @@ class Renderer:
 
     # rendering the box
     def Render(self, boardId: int, screen: object, dt: float, screenWidth: int, screenHeight: int, fadedText: typing.Tuple[int] = (200, 200, 200), origonal: bool=True, *args) -> None:
-        # the difference between the new and old x/y
-        dx = self.__nx - self.__x
-        dy = self.__ny - self.__y
-
-        # checking if the position is close enough to the new one
-        if abs(dx) < 0.5:
-            self.__x += dx
-        if abs(dy) < 0.5:
-            self.__y += dy
-
         # interpalating the old and new to smoothly move the box
-        self.__x = CoreFuncs.Lerp(self.__x, self.__nx, dt * 25)
-        self.__y = CoreFuncs.Lerp(self.__y, self.__ny, dt * 25)
+        self.__x = CoreFuncs.Lerp(self.__x, self.__nx, CoreFuncs.Clamp(dt * 25, 0, 1))
+        self.__y = CoreFuncs.Lerp(self.__y, self.__ny, CoreFuncs.Clamp(dt * 25, 0, 1))
 
         # the color of the text
         textColor = (255, 255, 255)
@@ -45,7 +35,7 @@ class Renderer:
             textColor = fadedText
 
         # rendering the box and the text
-        pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3], border_radius=1)
+        pygame.draw.rect(screen, (125, 125, 125), [self.__nx + 5, self.__ny + self.__sy - 3, self.__sx - 10, 3])
         pygame.draw.circle(screen, (125, 125, 125), (self.GetX() + 17, self.GetY() + 15), 8, 2)
         UI.UI.Text(screen, self.__text, textColor, (self.__x + 30, self.__y + 5), 20)
 
@@ -130,13 +120,14 @@ class RendererNote (Renderer):
         subNotes = notes[[key for key in notes][self.__noteId]]["SubNotes"]
         
         # updating the subnote fading incase a new one was added
-        while len(self.__subFadeRate) != len(subNotes):
-            self.__subFadeRate.append(1)
-            self.__subFaded.append(1)
+        if self.__droppedDown:
+            while len(self.__subFadeRate) != len(subNotes):
+                self.__subFadeRate.append(1)
+                self.__subFaded.append(1)
         
-        # updating the fading for the subnotes
-        for subI in range(len(self.__subFadeRate)):
-            self.__subFaded[subI] *= 1 - ((1 - self.__subFadeRate[subI]) * dt * 60)
+            # updating the fading for the subnotes
+            for subI in range(len(self.__subFadeRate)):
+                self.__subFaded[subI] *= 1 - ((1 - self.__subFadeRate[subI]) * dt * 60)
 
         # the change in height to account for the height differece between v and ^
         heightChange = 0
@@ -246,6 +237,7 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
 
     # the renderer
     renderer = box.GetRenderer()
+    menuDropped = renderer.GetDropped()
 
     # getting the actual index
     realIndex = self.GetIndex(boxId)
@@ -273,35 +265,37 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
         completionCollisionY = CoreFuncs.Range(events.mouseY, obY + 7, obY + 23)
 
         # checking if the dropdown button was pressed
-        if collisionX and collisionY:
-            # getting the size of the drop down
-            size = len(subNotes) * 20 + 5
-            if size == 5:
-                size = 0
+        if collisionX:
+            if collisionY:
+                # getting the size of the drop down
+                size = len(subNotes) * 20 + 5
+                if size == 5:
+                    size = 0
 
-            # checking if its dropped or undropped
-            if renderer.GetDropped():
-                # moving the boxes to the correct positions
-                self.ShiftBoxesY(realIndex, -size)
+                # checking if its dropped or undropped
+                if menuDropped:
+                    # moving the boxes to the correct positions
+                    self.ShiftBoxesY(realIndex, -size)
 
-                # swapping the dropped state
-                renderer.SetDropped(False)
-            else:
-                # moving the boxes to the correct positions
-                self.ShiftBoxesY(realIndex, size)
+                    # swapping the dropped state
+                    renderer.SetDropped(False)
+                else:
+                    # moving the boxes to the correct positions
+                    self.ShiftBoxesY(realIndex, size)
 
-                # swapping the dropped state
-                renderer.SetDropped(True)
-        # checking if the new sub note button was pressed
-        elif renderer.GetDropped() and collisionX and collisionY2:
-            # making sure nothing else is using the typingCreator
-            if not BoardCreator.typingCreator.GetActive():
-                # adding a new subnote
-                BoardCreator.boardCreator.AddAdder(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self), BoardCreator.boardCreator.States.SUBNOTE)
+                    # swapping the dropped state
+                    renderer.SetDropped(True)
+            # checking if the new sub note button was pressed
+            elif menuDropped and collisionY2:
+                # making sure nothing else is using the typingCreator
+                if not BoardCreator.typingCreator.GetActive():
+                    # adding a new subnote
+                    BoardCreator.boardCreator.AddAdder(BoardCreator.BoardCreator.SubNoteAdder(subNotes, boxId, self), BoardCreator.boardCreator.States.SUBNOTE)
+        
         # checking if the completion button was pressed
-        elif completionCollisionX and completionCollisionY:
+        if completionCollisionX and completionCollisionY:
             renderer.Del()  # removing the note
-        else:
+        elif menuDropped:
             # going through all the sub notes and checking if any of them have been completed
             for i in range(len(subNotes)):
                 #pygame.draw.circle(screen, (255, 175, 55), (self.GetX() + 29, self.GetY() + 45 + i * 20 + 9), 6, 2)
@@ -318,7 +312,7 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
     if fadeAmount <= 0.05:
         # getting the size of the drop down
         size = len(subNotes) * 20 + 5
-        if size == 5 or not renderer.GetDropped():
+        if size == 5 or not menuDropped:
             size = 0
 
         size += 50  # the size of a note
@@ -335,29 +329,30 @@ def NoteUpdateFunc(boxId: int, events: Events, self: object, *args) -> None:
         # removing the note from the board manager
         self.RemoveBox(realIndex)
     
-    # checking if any subnotes need removing
-    i = 0
-    for subFade in renderer.GetSubFades():
-        # checking if the subnote has fully faded
-        if subFade <= 0.05:
-            # removing the subnote from the json
-            del subNotes[i]
+    if menuDropped:
+        # checking if any subnotes need removing
+        i = 0
+        for subFade in renderer.GetSubFades():
+            # checking if the subnote has fully faded
+            if subFade <= 0.05:
+                # removing the subnote from the json
+                del subNotes[i]
 
-            # shifting the boxes to match it
-            self.ShiftBoxesY(realIndex, -20)
-            if len(subNotes) == 0:
-                self.ShiftBoxesY(realIndex, -5)
-            
-            # updating the fade rates and fading of the subnotes
-            renderer.RemoveSubFading(i)
+                # shifting the boxes to match it
+                self.ShiftBoxesY(realIndex, -20)
+                if len(subNotes) == 0:
+                    self.ShiftBoxesY(realIndex, -5)
+                
+                # updating the fade rates and fading of the subnotes
+                renderer.RemoveSubFading(i)
 
-            # checking if the note should be un-dropped down
-            if len(subNotes) == 0:
-                renderer.SetDropped(False)
+                # checking if the note should be un-dropped down
+                if len(subNotes) == 0:
+                    renderer.SetDropped(False)
 
-            # correcting the index for the removed subnote
-            i -= 1
-        i += 1
+                # correcting the index for the removed subnote
+                i -= 1
+            i += 1
 
 
 # the update function for note boards, take any number of args but only up to my is used
